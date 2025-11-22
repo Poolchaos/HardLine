@@ -95,11 +95,11 @@ describe('PenaltyService', () => {
     it('should return R2000 for 2 takeaways + 4 snacks', async () => {
       const user = await createTestUser();
       const testDate = new Date(2025, 10, 15);
-      
+
       // 2 takeaways = R1000
       await createTransaction(user._id!.toString(), 'Takeaway', testDate);
       await createTransaction(user._id!.toString(), 'Takeaway', testDate);
-      
+
       // 4 snacks (2 over limit, R500 each) = R1000
       await createTransaction(user._id!.toString(), 'Snack', testDate);
       await createTransaction(user._id!.toString(), 'Snack', testDate);

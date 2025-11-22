@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: hardline-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: hardline
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - hardline-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hardline-backend
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/hardline
+      - PORT=3000
+      - NODE_ENV=production
+      - CORS_ORIGIN=http://localhost
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    networks:
+      - hardline-network
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  hardline-network:
+    driver: bridge

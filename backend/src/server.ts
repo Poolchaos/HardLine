@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { config } from 'dotenv';
+import { validateEnv } from './config/env';
 import { connectDatabase } from './config/database';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { apiLimiter } from './middleware/rateLimiter';
@@ -16,11 +16,12 @@ import statsRoutes from './routes/stats';
 import templateRoutes from './routes/templates';
 import priceRoutes from './routes/prices';
 
-config();
+// Validate environment variables before starting
+const envConfig = validateEnv();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const PORT = envConfig.PORT;
+const CORS_ORIGIN = envConfig.CORS_ORIGIN;
 
 // Middleware
 app.use(cors({ origin: CORS_ORIGIN }));

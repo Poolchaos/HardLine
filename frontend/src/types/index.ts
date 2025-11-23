@@ -1,4 +1,4 @@
-export type Category = 'Essential' | 'NiceToHave' | 'WorkAI' | 'Startup' | 'Snack' | 'Takeaway';
+export type Category = 'Essential' | 'NiceToHave' | 'WorkAI' | 'Startup' | 'Snack' | 'Takeaway' | 'Discretionary';
 export type Consumer = 'MeMom' | 'Household' | 'SisterBF';
 export type ShoppingCycle = 'MonthStart' | 'MidMonth' | 'Both';
 export type ShoppingCategory = 'Cleaning' | 'Pantry' | 'Fridge';

@@ -18,14 +18,14 @@ vi.mock('../../lib/api', () => ({
 describe('QuickAdd Component', () => {
   const mockOnClose = vi.fn();
   const mockShoppingLists = [
-    { _id: 'list1', name: 'Weekly Groceries', description: 'Regular items', isActive: true, createdAt: new Date() },
-    { _id: 'list2', name: 'Monthly Bulk', description: 'Bulk purchases', isActive: true, createdAt: new Date() },
+    { _id: 'list1', userId: 'user1', name: 'Weekly Groceries', description: 'Regular items', isActive: true, sortOrder: 0, createdAt: new Date() },
+    { _id: 'list2', userId: 'user1', name: 'Monthly Bulk', description: 'Bulk purchases', isActive: true, sortOrder: 1, createdAt: new Date() },
   ];
 
   const mockShoppingItems = [
-    { _id: 'item1', listId: 'list1', name: 'Milk', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 25.50, isDiabeticFriendly: false },
-    { _id: 'item2', listId: 'list1', name: 'Bread', category: 'Pantry' as any, cycle: 'MonthStart' as any, typicalCost: 15.00, isDiabeticFriendly: false },
-    { _id: 'item3', listId: 'list1', name: 'Cleaning Spray', category: 'Cleaning' as any, cycle: 'MonthStart' as any, typicalCost: 35.00, isDiabeticFriendly: false },
+    { _id: 'item1', userId: 'user1', listId: 'list1', name: 'Milk', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 25.50, isDiabeticFriendly: false, isActive: true },
+    { _id: 'item2', userId: 'user1', listId: 'list1', name: 'Bread', category: 'Pantry' as any, cycle: 'MonthStart' as any, typicalCost: 15.00, isDiabeticFriendly: false, isActive: true },
+    { _id: 'item3', userId: 'user1', listId: 'list1', name: 'Cleaning Spray', category: 'Cleaning' as any, cycle: 'MonthStart' as any, typicalCost: 35.00, isDiabeticFriendly: false, isActive: true },
   ];
 
   beforeEach(() => {
@@ -317,7 +317,6 @@ describe('QuickAdd Component', () => {
     });
 
     it('should create transactions for all selected items', async () => {
-      const user = userEvent.setup();
       render(<QuickAdd onClose={mockOnClose} />);
 
       // Select shopping list

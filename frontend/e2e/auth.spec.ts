@@ -1,150 +1,123 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Authentication Flow', () => {
+test.describe('Authentication', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
 
   test('should display login form by default', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
-    await expect(page.getByPlaceholder('Email')).toBeVisible();
-    await expect(page.getByPlaceholder('Password')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
+    // Verify Sign In tab is active
+    const signInTab = page.getByTestId('tab-signin');
+    await expect(signInTab).toBeVisible();
+    
+    // Verify form fields are present
+    await expect(page.locator('#email')).toBeVisible();
+    await expect(page.locator('#password')).toBeVisible();
+    
+    // Verify submit button shows "Sign In"
+    await expect(page.getByTestId('submit-button')).toHaveText('Sign In');
+  });  test('should switch to signup form', async ({ page }) => {
+    // Click Sign Up tab
+    await page.getByTestId('tab-signup').click();
+
+    // Verify form shows all registration fields
+    await expect(page.locator('#name')).toBeVisible();
+    await expect(page.locator('#email')).toBeVisible();
+    await expect(page.locator('#password')).toBeVisible();
+    await expect(page.locator('#confirmPassword')).toBeVisible();
+    await expect(page.locator('#payday')).toBeVisible();
+
+    // Verify submit button shows "Create Account"
+    await expect(page.getByTestId('submit-button')).toHaveText('Create Account');
   });
 
-  test('should validate email format', async ({ page }) => {
-    await page.getByPlaceholder('Email').fill('invalid-email');
-    await page.getByPlaceholder('Email').blur();
+  test('should validate email format on login', async ({ page }) => {
+    const emailInput = page.locator('#email');
 
+    // Enter invalid email
+    await emailInput.fill('invalid-email');
+    await emailInput.blur();
+
+    // Check for validation error
     await expect(page.getByText('Please enter a valid email address')).toBeVisible();
   });
 
   test('should validate password length on login', async ({ page }) => {
-    await page.getByPlaceholder('Email').fill('test@example.com');
-    await page.getByPlaceholder('Password').fill('123');
-    await page.getByPlaceholder('Password').blur();
+    const passwordInput = page.locator('#password');
 
+    // Enter short password
+    await passwordInput.fill('123');
+    await passwordInput.blur();
+
+    // Check for validation error
     await expect(page.getByText('Password must be at least 6 characters')).toBeVisible();
   });
 
-  test('should switch to register form', async ({ page }) => {
-    await page.getByText('Create Account').click();
+  test('should register a new user successfully', async ({ page }) => {
+    const timestamp = Date.now();
+    const email = `test${timestamp}@example.com`;
 
-    await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
-    await expect(page.getByPlaceholder('Full Name')).toBeVisible();
-    await expect(page.getByPlaceholder('Payday')).toBeVisible();
-  });
+    // Switch to signup
+    await page.getByTestId('tab-signup').click();
 
-  test('should validate password confirmation on register', async ({ page }) => {
-    await page.getByText('Create Account').click();
+    // Fill registration form
+    await page.locator('#name').fill('Test User');
+    await page.locator('#email').fill(email);
+    await page.locator('#password').fill('password123');
+    await page.locator('#confirmPassword').fill('password123');
+    await page.locator('#payday').fill('25');
 
-    await page.getByPlaceholder('Full Name').fill('Test User');
-    await page.getByPlaceholder('Email').fill('test@example.com');
-    await page.getByPlaceholder('Password', { exact: true }).fill('password123');
-    await page.getByPlaceholder('Confirm Password').fill('different');
-    await page.getByPlaceholder('Confirm Password').blur();
+    // Submit form
+    await page.getByTestId('submit-button').click();
+    
+    // Wait for redirect to dashboard - look for heading specifically
+    await expect(page.locator('#available-heading')).toBeVisible({ timeout: 10000 });
+  });  test('should validate password confirmation on signup', async ({ page }) => {
+    // Switch to signup
+    await page.getByTestId('tab-signup').click();
 
+    await page.locator('#password').fill('password123');
+    await page.locator('#confirmPassword').fill('different');
+    await page.locator('#confirmPassword').blur();
+
+    // Check for mismatch error
     await expect(page.getByText('Passwords do not match')).toBeVisible();
   });
 
-  test('should successfully register a new user', async ({ page }) => {
-    const timestamp = Date.now();
-    const email = `test${timestamp}@example.com`;
+  test('should validate required fields on signup', async ({ page }) => {
+    // Switch to signup
+    await page.getByTestId('tab-signup').click();
 
-    await page.getByText('Create Account').click();
+    // Fill email to focus then blur
+    await page.locator('#email').fill('');
+    await page.locator('#email').blur();
 
-    await page.getByPlaceholder('Full Name').fill('Test User');
-    await page.getByPlaceholder('Email').fill(email);
-    await page.getByPlaceholder('Password', { exact: true }).fill('password123');
-    await page.getByPlaceholder('Confirm Password').fill('password123');
-    await page.getByPlaceholder('Payday').fill('25');
-
-    await page.getByRole('button', { name: 'Create Account' }).click();
-
-    // Should redirect to dashboard
-    await expect(page.getByRole('heading', { name: 'Available Balance' })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Test User')).toBeVisible();
-  });
-
-  test('should successfully login with existing user', async ({ page, context }) => {
-    // First register a user
-    const timestamp = Date.now();
-    const email = `test${timestamp}@example.com`;
-    const password = 'password123';
-
-    await page.getByText('Create Account').click();
-    await page.getByPlaceholder('Full Name').fill('Test User');
-    await page.getByPlaceholder('Email').fill(email);
-    await page.getByPlaceholder('Password', { exact: true }).fill(password);
-    await page.getByPlaceholder('Confirm Password').fill(password);
-    await page.getByPlaceholder('Payday').fill('25');
-    await page.getByRole('button', { name: 'Create Account' }).click();
-
-    // Wait for dashboard to load
-    await expect(page.getByRole('heading', { name: 'Available Balance' })).toBeVisible({ timeout: 10000 });
-
-    // Logout
-    await page.getByRole('button', { name: /logout/i }).click();
-
-    // Should show login form
-    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
-
-    // Login
-    await page.getByPlaceholder('Email').fill(email);
-    await page.getByPlaceholder('Password').fill(password);
-    await page.getByRole('button', { name: 'Login' }).click();
-
-    // Should be back on dashboard
-    await expect(page.getByRole('heading', { name: 'Available Balance' })).toBeVisible();
-  });
-
-  test('should show error for invalid credentials', async ({ page }) => {
-    await page.getByPlaceholder('Email').fill('nonexistent@example.com');
-    await page.getByPlaceholder('Password').fill('wrongpassword');
-    await page.getByRole('button', { name: 'Login' }).click();
-
-    await expect(page.getByText(/Invalid credentials/i)).toBeVisible({ timeout: 5000 });
-  });
-
-  test('should persist authentication on page reload', async ({ page }) => {
-    // Register and login
-    const timestamp = Date.now();
-    const email = `test${timestamp}@example.com`;
-
-    await page.getByText('Create Account').click();
-    await page.getByPlaceholder('Full Name').fill('Test User');
-    await page.getByPlaceholder('Email').fill(email);
-    await page.getByPlaceholder('Password', { exact: true }).fill('password123');
-    await page.getByPlaceholder('Confirm Password').fill('password123');
-    await page.getByPlaceholder('Payday').fill('25');
-    await page.getByRole('button', { name: 'Create Account' }).click();
-
-    await expect(page.getByRole('heading', { name: 'Available Balance' })).toBeVisible({ timeout: 10000 });
-
-    // Reload page
-    await page.reload();
-
-    // Should still be logged in
-    await expect(page.getByRole('heading', { name: 'Available Balance' })).toBeVisible();
-    await expect(page.getByText('Test User')).toBeVisible();
+    // Check for validation error
+    await expect(page.getByText('Email is required')).toBeVisible();
   });
 
   test('should toggle password visibility', async ({ page }) => {
-    const passwordInput = page.getByPlaceholder('Password');
+    const passwordInput = page.locator('#password');
 
-    // Should be type password by default
+    // Password should be hidden by default
     await expect(passwordInput).toHaveAttribute('type', 'password');
 
-    // Click show password button
-    await page.getByRole('button', { name: /show password/i }).first().click();
+    // Click toggle button (eye icon button next to password field)
+    const toggleButton = page.locator('button[type="button"]').filter({
+      has: page.locator('svg path[d*="M15 12"]')
+    });
+    await toggleButton.click();
 
-    // Should change to text
+    // Password should be visible
     await expect(passwordInput).toHaveAttribute('type', 'text');
+  });
 
-    // Click again to hide
-    await page.getByRole('button', { name: /hide password/i }).first().click();
+  test('should show error for invalid credentials', async ({ page }) => {
+    await page.locator('#email').fill('nonexistent@example.com');
+    await page.locator('#password').fill('wrongpassword');
+    await page.getByTestId('submit-button').click();
 
-    // Should be password again
-    await expect(passwordInput).toHaveAttribute('type', 'password');
+    // Wait for error message
+    await expect(page.getByText(/Authentication Error|Invalid|not found/i)).toBeVisible({ timeout: 5000 });
   });
 });

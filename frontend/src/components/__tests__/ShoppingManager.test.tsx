@@ -18,14 +18,14 @@ vi.mock('../../lib/api', () => ({
 
 describe('ShoppingManager Component', () => {
   const mockLists = [
-    { _id: 'list1', name: 'Weekly Groceries', description: 'Regular items', isActive: true, createdAt: new Date() },
-    { _id: 'list2', name: 'Monthly Bulk', description: 'Bulk purchases', isActive: true, createdAt: new Date() },
+    { _id: 'list1', userId: 'user1', name: 'Weekly Groceries', description: 'Regular items', isActive: true, sortOrder: 0, createdAt: new Date() },
+    { _id: 'list2', userId: 'user1', name: 'Monthly Bulk', description: 'Bulk purchases', isActive: true, sortOrder: 1, createdAt: new Date() },
   ];
 
   const mockItems = [
-    { _id: 'item1', listId: 'list1', name: 'Milk', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 25.50, isDiabeticFriendly: false },
-    { _id: 'item2', listId: 'list1', name: 'Bread', category: 'Pantry' as any, cycle: 'MonthStart' as any, typicalCost: 15.00, isDiabeticFriendly: false },
-    { _id: 'item3', listId: 'list1', name: 'Cleaning Spray', category: 'Cleaning' as any, cycle: 'MonthStart' as any, typicalCost: 35.00, isDiabeticFriendly: false },
+    { _id: 'item1', userId: 'user1', listId: 'list1', name: 'Milk', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 25.50, isDiabeticFriendly: false, isActive: true },
+    { _id: 'item2', userId: 'user1', listId: 'list1', name: 'Bread', category: 'Pantry' as any, cycle: 'MonthStart' as any, typicalCost: 15.00, isDiabeticFriendly: false, isActive: true },
+    { _id: 'item3', userId: 'user1', listId: 'list1', name: 'Cleaning Spray', category: 'Cleaning' as any, cycle: 'MonthStart' as any, typicalCost: 35.00, isDiabeticFriendly: false, isActive: true },
   ];
 
   beforeEach(() => {
@@ -93,7 +93,7 @@ describe('ShoppingManager Component', () => {
 
     it('should create new shopping list', async () => {
       const user = userEvent.setup();
-      const newList = { _id: 'list3', name: 'Test List', description: 'Test', isActive: true, createdAt: new Date() };
+      const newList = { _id: 'list3', userId: 'user1', name: 'Test List', description: 'Test', isActive: true, sortOrder: 2, createdAt: new Date() };
       vi.mocked(shoppingApi.createList).mockResolvedValue(newList);
 
       render(<ShoppingManager />);
@@ -192,7 +192,7 @@ describe('ShoppingManager Component', () => {
 
     it('should create new shopping item', async () => {
       const user = userEvent.setup();
-      const newItem = { _id: 'item4', listId: 'list1', name: 'Eggs', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 30, isDiabeticFriendly: false };
+      const newItem = { _id: 'item4', userId: 'user1', listId: 'list1', name: 'Eggs', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 30, isDiabeticFriendly: false, isActive: true };
       vi.mocked(shoppingApi.createItem).mockResolvedValue(newItem);
 
       render(<ShoppingManager />);
@@ -276,7 +276,7 @@ describe('ShoppingManager Component', () => {
     });
 
     it('should show diabetic-friendly indicator', async () => {
-      const diabeticItem = { ...mockItems[0], isDiabeticFriendly: true };
+      const diabeticItem = { ...mockItems[0], isDiabeticFriendly: true, userId: 'user1', isActive: true };
       vi.mocked(shoppingApi.getAllItems).mockResolvedValue([diabeticItem]);
 
       render(<ShoppingManager />);

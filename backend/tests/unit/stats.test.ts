@@ -4,6 +4,8 @@ import { User } from '../../src/models/User';
 import { Transaction } from '../../src/models/Transaction';
 import { DebitOrder } from '../../src/models/DebitOrder';
 import { MonthlyStats } from '../../src/models/MonthlyStats';
+import { ShoppingItem } from '../../src/models/ShoppingItem';
+import { ShoppingPurchase } from '../../src/models/ShoppingPurchase';
 import {
   generateMonthlyStats,
   getMonthlyStats,
@@ -29,6 +31,8 @@ afterEach(async () => {
   await Transaction.deleteMany({});
   await DebitOrder.deleteMany({});
   await MonthlyStats.deleteMany({});
+  await ShoppingItem.deleteMany({});
+  await ShoppingPurchase.deleteMany({});
 });
 
 describe('MonthlyStats Service', () => {
@@ -404,6 +408,90 @@ describe('MonthlyStats Service', () => {
       expect(stats.categoryBreakdown.Startup).toBe(400);
       expect(stats.categoryBreakdown.Food).toBe(500);
       expect(stats.categoryBreakdown.Entertainment).toBe(600);
+    });
+  });
+
+  describe('Shopping Stats', () => {
+    it('should calculate shopping item quantities and totals', async () => {
+      const user = await createTestUser();
+      const year = 2025;
+      const month = 10;
+
+      // Create shopping items
+      const milkItem = await ShoppingItem.create({
+        userId: user._id!.toString(),
+        name: 'Milk',
+        category: 'Fridge',
+        cycle: 'Both',
+        typicalCost: 50,
+        isActive: true,
+      });
+
+      const breadItem = await ShoppingItem.create({
+        userId: user._id!.toString(),
+        name: 'Bread',
+        category: 'Pantry',
+        cycle: 'MonthStart',
+        typicalCost: 25,
+        isActive: true,
+      });
+
+      // Create purchases
+      await ShoppingPurchase.create([
+        {
+          userId: user._id!.toString(),
+          shoppingItemId: milkItem._id!.toString(),
+          transactionId: 'txn1',
+          cycle: 'Both',
+          actualCost: 52,
+          purchaseDate: new Date(2025, 10, 5),
+        },
+        {
+          userId: user._id!.toString(),
+          shoppingItemId: milkItem._id!.toString(),
+          transactionId: 'txn2',
+          cycle: 'Both',
+          actualCost: 48,
+          purchaseDate: new Date(2025, 10, 15),
+        },
+        {
+          userId: user._id!.toString(),
+          shoppingItemId: breadItem._id!.toString(),
+          transactionId: 'txn3',
+          cycle: 'MonthStart',
+          actualCost: 24,
+          purchaseDate: new Date(2025, 10, 6),
+        },
+      ]);
+
+      const stats = await generateMonthlyStats(user._id!.toString(), year, month);
+
+      expect(stats.shoppingStats).toBeDefined();
+      expect(stats.shoppingStats!.totalItems).toBe(3);
+      expect(stats.shoppingStats!.totalSpent).toBe(124); // 52 + 48 + 24
+      expect(stats.shoppingStats!.uniqueItems).toBe(2); // Milk and Bread
+      expect(stats.shoppingStats!.topItems).toHaveLength(2);
+      
+      // Milk should be first (higher total spend)
+      expect(stats.shoppingStats!.topItems[0].name).toBe('Milk');
+      expect(stats.shoppingStats!.topItems[0].quantity).toBe(2);
+      expect(stats.shoppingStats!.topItems[0].totalSpent).toBe(100);
+      expect(stats.shoppingStats!.topItems[0].avgPrice).toBe(50);
+
+      // Bread second
+      expect(stats.shoppingStats!.topItems[1].name).toBe('Bread');
+      expect(stats.shoppingStats!.topItems[1].quantity).toBe(1);
+      expect(stats.shoppingStats!.topItems[1].totalSpent).toBe(24);
+    });
+
+    it('should handle months with no shopping purchases', async () => {
+      const user = await createTestUser();
+      const year = 2025;
+      const month = 10;
+
+      const stats = await generateMonthlyStats(user._id!.toString(), year, month);
+
+      expect(stats.shoppingStats).toBeUndefined();
     });
   });
 });

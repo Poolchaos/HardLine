@@ -9,6 +9,13 @@ export interface ICategoryBreakdown {
   Entertainment: number;
 }
 
+export interface IShoppingItemStats {
+  name: string;
+  quantity: number;
+  totalSpent: number;
+  avgPrice: number;
+}
+
 export interface IMonthlyStats {
   _id?: string;
   userId: string;
@@ -22,6 +29,12 @@ export interface IMonthlyStats {
   categoryBreakdown: ICategoryBreakdown;
   transactionCount: number;
   avgDailySpending: number;
+  shoppingStats?: {
+    totalItems: number;
+    totalSpent: number;
+    uniqueItems: number;
+    topItems: IShoppingItemStats[];
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -103,6 +116,22 @@ const monthlyStatsSchema = new mongoose.Schema<IMonthlyStats>(
       type: Number,
       required: true,
       default: 0,
+    },
+    shoppingStats: {
+      type: {
+        totalItems: { type: Number, default: 0 },
+        totalSpent: { type: Number, default: 0 },
+        uniqueItems: { type: Number, default: 0 },
+        topItems: [
+          {
+            name: String,
+            quantity: Number,
+            totalSpent: Number,
+            avgPrice: Number,
+          },
+        ],
+      },
+      required: false,
     },
   },
   {

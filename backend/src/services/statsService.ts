@@ -1,6 +1,8 @@
 import { Transaction } from '../models/Transaction';
 import { DebitOrder } from '../models/DebitOrder';
-import { MonthlyStats, IMonthlyStats, ICategoryBreakdown } from '../models/MonthlyStats';
+import { MonthlyStats, IMonthlyStats, ICategoryBreakdown, IShoppingItemStats } from '../models/MonthlyStats';
+import { ShoppingPurchase } from '../models/ShoppingPurchase';
+import { ShoppingItem } from '../models/ShoppingItem';
 
 /**
  * Generate or update monthly stats for a specific user and month
@@ -56,6 +58,47 @@ export async function generateMonthlyStats(
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const avgDailySpending = totalExpenses / daysInMonth;
 
+  // Calculate shopping stats
+  const purchases = await ShoppingPurchase.find({
+    userId,
+    purchaseDate: { $gte: startOfMonth, $lte: endOfMonth },
+  });
+
+  let shoppingStats;
+  if (purchases.length > 0) {
+    const itemMap = new Map<string, { quantity: number; totalSpent: number }>();
+    
+    // Aggregate by item
+    for (const purchase of purchases) {
+      const item = await ShoppingItem.findById(purchase.shoppingItemId);
+      if (item) {
+        const existing = itemMap.get(item.name) || { quantity: 0, totalSpent: 0 };
+        itemMap.set(item.name, {
+          quantity: existing.quantity + 1,
+          totalSpent: existing.totalSpent + purchase.actualCost,
+        });
+      }
+    }
+
+    // Convert to array and calculate averages
+    const topItems: IShoppingItemStats[] = Array.from(itemMap.entries())
+      .map(([name, data]) => ({
+        name,
+        quantity: data.quantity,
+        totalSpent: data.totalSpent,
+        avgPrice: data.totalSpent / data.quantity,
+      }))
+      .sort((a, b) => b.totalSpent - a.totalSpent)
+      .slice(0, 10); // Top 10 items by spend
+
+    shoppingStats = {
+      totalItems: purchases.length,
+      totalSpent: purchases.reduce((sum, p) => sum + p.actualCost, 0),
+      uniqueItems: itemMap.size,
+      topItems,
+    };
+  }
+
   // Upsert monthly stats
   const stats = await MonthlyStats.findOneAndUpdate(
     { userId, year, month },
@@ -71,6 +114,7 @@ export async function generateMonthlyStats(
       categoryBreakdown,
       transactionCount: transactions.length,
       avgDailySpending,
+      ...(shoppingStats && { shoppingStats }),
     },
     { upsert: true, new: true }
   );

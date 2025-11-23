@@ -20,7 +20,7 @@ router.post('/', strictLimiter, createTransactionValidation, async (req: AuthReq
     }
 
     const userId = req.userId!; // From auth middleware
-    const { type, amount, description, category, incomeSource, date } = req.body;
+    const { type, amount, description, category, incomeSource, date, wastageAmount, wastageType, wastageNotes } = req.body;
 
     const transactionDate = date ? new Date(date) : new Date();
 
@@ -37,6 +37,12 @@ router.post('/', strictLimiter, createTransactionValidation, async (req: AuthReq
       // Income-specific fields
       ...(type === 'income' && {
         incomeSource,
+      }),
+      // Wastage tracking (optional)
+      ...(wastageAmount && {
+        wastageAmount,
+        wastageType,
+        wastageNotes,
       }),
     });
 

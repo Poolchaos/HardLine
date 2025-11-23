@@ -30,15 +30,12 @@ export const createFixedExpenseValidation: ValidationChain[] = [
 ];
 
 export const createShoppingItemValidation: ValidationChain[] = [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('category')
-    .isIn(['Cleaning', 'Pantry', 'Fridge'])
-    .withMessage('Invalid category'),
+  body('globalItemId').notEmpty().withMessage('Global item ID is required'),
   body('cycle')
     .isIn(['MonthStart', 'MidMonth', 'Both'])
     .withMessage('Invalid cycle'),
   body('isDiabeticFriendly').optional().isBoolean().withMessage('Must be boolean'),
-  body('typicalCost').isFloat({ min: 0 }).withMessage('Typical cost must be positive'),
+  body('quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
 ];
 
 export const monthQueryValidation: ValidationChain[] = [

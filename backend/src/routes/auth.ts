@@ -127,10 +127,12 @@ router.get('/me', async (req: Request, res: Response) => {
     }
 
     res.json({
-      id: user._id,
-      email: user.email,
-      name: user.name,
-      payday: user.payday,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        payday: user.payday,
+      }
     });
   } catch (error) {
     console.error('Auth error:', error);

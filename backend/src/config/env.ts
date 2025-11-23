@@ -16,13 +16,16 @@ interface EnvConfig {
 export function validateEnv(): EnvConfig {
   const errors: string[] = [];
 
+  // Support both MONGODB_URI and MONGO_URI for backward compatibility
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
   // Required variables
-  const requiredVars = ['MONGODB_URI', 'JWT_SECRET'];
-  
-  for (const varName of requiredVars) {
-    if (!process.env[varName]) {
-      errors.push(`Missing required environment variable: ${varName}`);
-    }
+  if (!mongoUri) {
+    errors.push('Missing required environment variable: MONGODB_URI (or MONGO_URI)');
+  }
+
+  if (!process.env.JWT_SECRET) {
+    errors.push('Missing required environment variable: JWT_SECRET');
   }
 
   // Validate JWT_SECRET strength
@@ -36,9 +39,9 @@ export function validateEnv(): EnvConfig {
     errors.push('PORT must be a valid number between 1 and 65535');
   }
 
-  // Validate MONGODB_URI format
-  if (process.env.MONGODB_URI && !process.env.MONGODB_URI.startsWith('mongodb://') && !process.env.MONGODB_URI.startsWith('mongodb+srv://')) {
-    errors.push('MONGODB_URI must start with mongodb:// or mongodb+srv://');
+  // Validate MongoDB URI format
+  if (mongoUri && !mongoUri.startsWith('mongodb://') && !mongoUri.startsWith('mongodb+srv://')) {
+    errors.push('MongoDB URI must start with mongodb:// or mongodb+srv://');
   }
 
   if (errors.length > 0) {
@@ -49,7 +52,7 @@ export function validateEnv(): EnvConfig {
 
   const config: EnvConfig = {
     PORT: port,
-    MONGODB_URI: process.env.MONGODB_URI!,
+    MONGODB_URI: mongoUri!,
     JWT_SECRET: process.env.JWT_SECRET!,
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -70,9 +73,11 @@ export function validateEnv(): EnvConfig {
  * Get validated environment config
  */
 export function getEnvConfig(): EnvConfig {
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
   return {
     PORT: parseInt(process.env.PORT || '3000'),
-    MONGODB_URI: process.env.MONGODB_URI!,
+    MONGODB_URI: mongoUri!,
     JWT_SECRET: process.env.JWT_SECRET!,
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
     NODE_ENV: process.env.NODE_ENV || 'development',

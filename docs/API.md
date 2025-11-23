@@ -97,7 +97,7 @@ All routes (except auth) require JWT authentication via `Authorization: Bearer <
 ### Delete Transaction
 - **DELETE** `/transactions/:id`
 
-**Categories:** `Essential`, `Discretionary`, `WorkAI`, `Startup`, `Food`, `Entertainment`  
+**Categories:** `Essential`, `Discretionary`, `WorkAI`, `Startup`, `Food`, `Entertainment`
 **Income Sources:** `Salary`, `Sister`, `SideProject`, `Other`
 
 ---
@@ -121,7 +121,7 @@ All routes (except auth) require JWT authentication via `Authorization: Bearer <
   }
   ```
 
-**Priorities:** `critical`, `important`, `optional`  
+**Priorities:** `critical`, `important`, `optional`
 **Statuses:** `active`, `paused`, `cancelled`
 
 ### Update Debit Order
@@ -226,7 +226,7 @@ All routes (except auth) require JWT authentication via `Authorization: Bearer <
   }
   ```
 
-**Categories:** `Cleaning`, `Pantry`, `Fridge`  
+**Categories:** `Cleaning`, `Pantry`, `Fridge`
 **Cycles:** `MonthStart`, `MidMonth`, `Both`
 
 ### Update Shopping Item

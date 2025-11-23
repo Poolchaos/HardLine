@@ -34,6 +34,11 @@ export async function getDashboard(
     .filter((txn: any) => txn.type === 'expense')
     .reduce((sum: number, txn: any) => sum + txn.amount, 0);
 
+  // Calculate total wastage
+  const totalWastage = transactions
+    .filter((txn: any) => txn.type === 'expense' && txn.wastageAmount)
+    .reduce((sum: number, txn: any) => sum + (txn.wastageAmount || 0), 0);
+
   // Get active debit orders
   const debitOrders = await DebitOrder.find({ userId, status: 'active' });
   const totalDebitOrders = debitOrders.reduce((sum: number, order: any) => sum + order.amount, 0);
@@ -58,5 +63,6 @@ export async function getDashboard(
     fixedExpenses: totalDebitOrders,
     availableBalance: Math.max(0, availableBalance),
     daysUntilPayday,
+    totalWastage,
   };
 }

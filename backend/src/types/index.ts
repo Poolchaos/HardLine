@@ -1,8 +1,10 @@
 export type Category = 'Essential' | 'Discretionary' | 'WorkAI' | 'Startup' | 'Food' | 'Entertainment';
 export type ShoppingCycle = 'MonthStart' | 'MidMonth' | 'Both';
 export type ShoppingCategory = 'Cleaning' | 'Pantry' | 'Fridge';
+export type UOM = 'L' | 'ml' | 'kg' | 'g' | 'units' | 'pack' | 'dozen' | 'box' | 'bag' | 'bottle' | 'can';
 export type TransactionType = 'income' | 'expense';
-export type IncomeSource = 'Salary' | 'Sister' | 'SideProject' | 'Other';
+export type IncomeSource = 'Salary' | 'Other';
+export type WastageType = 'DeliveryFee' | 'Tip' | 'AppFee' | 'ServiceCharge' | 'Other';
 
 export interface IUser {
   _id?: string;
@@ -25,6 +27,10 @@ export interface ITransaction {
   category?: Category;
   // For income transactions
   incomeSource?: IncomeSource;
+  // Wastage tracking
+  wastageAmount?: number;
+  wastageType?: WastageType;
+  wastageNotes?: string;
   createdAt?: Date;
 }
 
@@ -36,15 +42,54 @@ export interface IFixedExpense {
   isActive: boolean;
 }
 
-export interface IShoppingItem {
+export interface IShoppingList {
   _id?: string;
   userId: string;
   name: string;
+  description?: string;
+  isActive: boolean;
+  sortOrder: number;
+  targetDate?: Date;
+  createdAt?: Date;
+}
+
+export interface IGlobalItem {
+  _id?: string;
+  name: string;
   category: ShoppingCategory;
+  uom: UOM;
+  packageSize?: number;
+  packageType?: string;
+  brand?: string;
+  barcode?: string;
+  isActive: boolean;
+  createdBy: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface IShoppingItem {
+  _id?: string;
+  userId: string;
+  listId: string; // References IShoppingList._id
+  globalItemId: string; // References IGlobalItem._id
+  quantity: number;
   cycle: ShoppingCycle;
   isDiabeticFriendly: boolean;
-  typicalCost: number;
   isActive: boolean;
+}
+
+export interface IItemPurchaseHistory {
+  _id?: string;
+  userId: string;
+  globalItemId: string; // References IGlobalItem._id
+  transactionId?: string; // References ITransaction._id
+  price: number;
+  quantity: number;
+  purchaseDate: Date;
+  store?: string;
+  notes?: string;
+  createdAt?: Date;
 }
 
 export interface IShoppingPurchase {
@@ -64,4 +109,5 @@ export interface BudgetDashboard {
   fixedExpenses: number;
   availableBalance: number;
   daysUntilPayday: number;
+  totalWastage: number;
 }

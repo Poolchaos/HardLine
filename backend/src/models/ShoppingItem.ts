@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IShoppingItem, ShoppingCycle, ShoppingCategory } from '../types';
+import { IShoppingItem, ShoppingCycle } from '../types';
 
 const shoppingItemSchema = new mongoose.Schema<IShoppingItem>({
   userId: {
@@ -7,15 +7,21 @@ const shoppingItemSchema = new mongoose.Schema<IShoppingItem>({
     required: true,
     index: true,
   },
-  name: {
+  listId: {
     type: String,
     required: true,
-    trim: true,
+    index: true,
   },
-  category: {
+  globalItemId: {
     type: String,
     required: true,
-    enum: ['Cleaning', 'Pantry', 'Fridge'] as ShoppingCategory[],
+    index: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+    default: 1,
   },
   cycle: {
     type: String,
@@ -25,11 +31,6 @@ const shoppingItemSchema = new mongoose.Schema<IShoppingItem>({
   isDiabeticFriendly: {
     type: Boolean,
     default: false,
-  },
-  typicalCost: {
-    type: Number,
-    required: true,
-    min: 0,
   },
   isActive: {
     type: Boolean,

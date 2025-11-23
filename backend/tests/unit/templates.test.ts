@@ -423,7 +423,7 @@ describe('Shopping Templates & Price Tracking', () => {
       const comparison = await getPriceComparison(user._id!.toString());
 
       expect(comparison).toHaveLength(2);
-      
+
       const milkComparison = comparison.find((c) => c.itemName === 'Milk');
       expect(milkComparison?.trend).toBe('up');
       expect(milkComparison?.currentPrice).toBe(55);

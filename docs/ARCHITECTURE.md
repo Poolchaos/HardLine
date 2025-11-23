@@ -1,7 +1,7 @@
 # HardLine v2 - Final Architecture
 
-**Version:** 2.0.0  
-**Status:** ✅ Complete  
+**Version:** 2.0.0
+**Status:** ✅ Complete
 **Date:** November 23, 2025
 
 ---
@@ -12,12 +12,12 @@ HardLine v2 is a comprehensive multi-user finance and household management syste
 
 ### Key Features Implemented
 
-✅ **Multi-user authentication** with JWT  
-✅ **Auto-debiting debit orders** with pause/resume/cancel  
-✅ **Monthly stats & savings tracking** with category breakdowns  
-✅ **Shopping item quantity tracking** in monthly stats  
-✅ **Grocery templates** for reusable shopping lists  
-✅ **Price tracking** with trend analysis  
+✅ **Multi-user authentication** with JWT
+✅ **Auto-debiting debit orders** with pause/resume/cancel
+✅ **Monthly stats & savings tracking** with category breakdowns
+✅ **Shopping item quantity tracking** in monthly stats
+✅ **Grocery templates** for reusable shopping lists
+✅ **Price tracking** with trend analysis
 
 ---
 

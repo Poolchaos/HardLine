@@ -104,25 +104,6 @@ export default function Settings() {
               Used to calculate shopping cycles and days until payday
             </p>
           </div>
-
-          <div>
-            <label htmlFor="subsidyCap" className="block text-sm font-medium mb-2">
-              Sister Subsidy Cap (R)
-            </label>
-            <input
-              id="subsidyCap"
-              type="number"
-              step="0.01"
-              value={user.sisterSubsidyCap}
-              onChange={(e) => setUser({ ...user, sisterSubsidyCap: parseFloat(e.target.value) })}
-              onBlur={() => handleUserUpdate({ sisterSubsidyCap: user.sisterSubsidyCap })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-              disabled={saving}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Maximum amount to subsidize sister's expenses per month
-            </p>
-          </div>
         </div>
       </section>
 
@@ -165,6 +146,49 @@ export default function Settings() {
             ⚠️ Penalty system is currently disabled. Violations will not be tracked.
           </div>
         )}
+      </section>
+
+      {/* Wastage Tracking */}
+      <section
+        className="rounded-lg border border-amber-500/50 bg-amber-500/5 p-6"
+        aria-labelledby="wastage-heading"
+      >
+        <h2 id="wastage-heading" className="mb-4 text-lg font-semibold flex items-center gap-2">
+          <span>💸</span>
+          Wastage Tracking
+        </h2>
+
+        <div className="space-y-4">
+          <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-4">
+            <p className="font-medium text-amber-900 dark:text-amber-200">What is considered wastage?</p>
+            <ul className="mt-2 space-y-1 text-sm text-amber-800 dark:text-amber-300">
+              <li>• Takeaway orders (the transaction itself)</li>
+              <li>• Snacks (the transaction itself)</li>
+              <li>• Delivery fees and tips</li>
+              <li>• App usage fees (Uber Eats, Mr D, etc.)</li>
+              <li>• Service charges</li>
+              <li>• Unneeded debit orders</li>
+            </ul>
+          </div>
+
+          <div className="rounded-md bg-slate-100 dark:bg-slate-800 p-4 border border-slate-300 dark:border-slate-700">
+            <p className="font-medium text-slate-900 dark:text-slate-200 mb-2">How to track wastage:</p>
+            <ol className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+              <li className="flex gap-2">
+                <span className="font-bold">1.</span>
+                <span>When adding a Takeaway or Snack expense, click "Add Wastage" to include delivery fees, tips, or app fees</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold">2.</span>
+                <span>The wastage amount is tracked separately and included in your total wastage report on the dashboard</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold">3.</span>
+                <span>Remember: The entire Takeaway/Snack transaction counts as wastage, plus any additional fees</span>
+              </li>
+            </ol>
+          </div>
+        </div>
       </section>
 
       {/* Fixed Expenses */}

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ITransaction, Category, TransactionType, IncomeSource } from '../types';
+import { ITransaction, Category, TransactionType, IncomeSource, WastageType } from '../types';
 
 const transactionSchema = new mongoose.Schema<ITransaction>({
   userId: {
@@ -37,8 +37,22 @@ const transactionSchema = new mongoose.Schema<ITransaction>({
   // For income transactions
   incomeSource: {
     type: String,
-    enum: ['Salary', 'Sister', 'SideProject', 'Other'] as IncomeSource[],
+    enum: ['Salary', 'Other'] as IncomeSource[],
     required: function(this: ITransaction) { return this.type === 'income'; },
+  },
+  // Wastage tracking
+  wastageAmount: {
+    type: Number,
+    min: 0,
+    default: 0,
+  },
+  wastageType: {
+    type: String,
+    enum: ['DeliveryFee', 'Tip', 'AppFee', 'ServiceCharge', 'Other'] as WastageType[],
+  },
+  wastageNotes: {
+    type: String,
+    trim: true,
   },
   createdAt: {
     type: Date,

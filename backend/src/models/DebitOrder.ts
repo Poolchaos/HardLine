@@ -83,20 +83,20 @@ const debitOrderSchema = new mongoose.Schema<IDebitOrder>({
 // Update nextDebitDate before saving
 debitOrderSchema.pre('save', function(this: mongoose.Document & IDebitOrder, next: mongoose.CallbackWithoutResultAndOptionalError) {
   this.updatedAt = new Date();
-  
+
   // Calculate next debit date if not set or if it's in the past
   if (!this.nextDebitDate || this.nextDebitDate < new Date()) {
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
-    
+
     // If debit date hasn't passed this month, use this month
     // Otherwise use next month
     const targetMonth = today.getDate() < this.debitDate ? currentMonth : currentMonth + 1;
-    
+
     this.nextDebitDate = new Date(currentYear, targetMonth, this.debitDate);
   }
-  
+
   next();
 });
 

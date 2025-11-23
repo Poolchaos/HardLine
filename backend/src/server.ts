@@ -13,6 +13,8 @@ import settingsRoutes from './routes/settings';
 import authRoutes from './routes/auth';
 import debitOrderRoutes from './routes/debitOrders';
 import statsRoutes from './routes/stats';
+import templateRoutes from './routes/templates';
+import priceRoutes from './routes/prices';
 
 config();
 
@@ -49,6 +51,8 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/debit-orders', debitOrderRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/shopping', shoppingRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/prices', priceRoutes);
 app.use('/api/settings', settingsRoutes);
 
 // Error handling

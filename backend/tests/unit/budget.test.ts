@@ -283,7 +283,7 @@ describe('BudgetService', () => {
     it('should isolate data between different users', async () => {
       // Create two users
       const user1 = await createTestUser();
-      
+
       const user2 = new User({
         email: 'user2@hardline.com',
         passwordHash: '$2a$10$dummyhashfortest2',

@@ -471,7 +471,7 @@ describe('MonthlyStats Service', () => {
       expect(stats.shoppingStats!.totalSpent).toBe(124); // 52 + 48 + 24
       expect(stats.shoppingStats!.uniqueItems).toBe(2); // Milk and Bread
       expect(stats.shoppingStats!.topItems).toHaveLength(2);
-      
+
       // Milk should be first (higher total spend)
       expect(stats.shoppingStats!.topItems[0].name).toBe('Milk');
       expect(stats.shoppingStats!.topItems[0].quantity).toBe(2);

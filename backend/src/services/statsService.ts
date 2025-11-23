@@ -67,7 +67,7 @@ export async function generateMonthlyStats(
   let shoppingStats;
   if (purchases.length > 0) {
     const itemMap = new Map<string, { quantity: number; totalSpent: number }>();
-    
+
     // Aggregate by item
     for (const purchase of purchases) {
       const item = await ShoppingItem.findById(purchase.shoppingItemId);

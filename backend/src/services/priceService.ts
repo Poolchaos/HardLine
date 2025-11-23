@@ -1,6 +1,7 @@
 import { PriceHistory, IPriceHistory } from '../models/PriceHistory';
 import { ShoppingItem } from '../models/ShoppingItem';
 import { ShoppingPurchase } from '../models/ShoppingPurchase';
+import { GlobalItem } from '../models/GlobalItem';
 
 /**
  * Record a price for a shopping item
@@ -148,11 +149,12 @@ export async function getPriceComparison(userId: string): Promise<
 
   for (const item of items) {
     const trend = await getPriceTrend(userId, item._id!.toString());
+    const globalItem = await GlobalItem.findById(item.globalItemId);
     comparisons.push({
       itemId: item._id!.toString(),
-      itemName: item.name,
-      currentPrice: trend.currentPrice || item.typicalCost,
-      typicalCost: item.typicalCost,
+      itemName: globalItem?.name || 'Unknown',
+      currentPrice: trend.currentPrice || 0,
+      typicalCost: trend.currentPrice || 0,
       trend: trend.trend,
       changePercent: trend.changePercent,
     });

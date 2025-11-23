@@ -5,6 +5,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import { apiLimiter, strictLimiter } from '../middleware/rateLimiter';
 import { ShoppingTemplate } from '../models/ShoppingTemplate';
 import { ShoppingItem } from '../models/ShoppingItem';
+import { GlobalItem } from '../models/GlobalItem';
 
 const router = Router();
 
@@ -201,7 +202,7 @@ router.post('/:id/apply', strictLimiter, async (req: AuthRequest, res: Response)
       },
       items,
       totalItems: items.length,
-      estimatedCost: items.reduce((sum, item) => sum + item.typicalCost * item.templateQuantity, 0),
+      estimatedCost: 0, // TODO: Calculate from purchase history
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

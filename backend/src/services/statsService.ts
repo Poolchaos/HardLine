@@ -3,6 +3,7 @@ import { DebitOrder } from '../models/DebitOrder';
 import { MonthlyStats, IMonthlyStats, ICategoryBreakdown, IShoppingItemStats } from '../models/MonthlyStats';
 import { ShoppingPurchase } from '../models/ShoppingPurchase';
 import { ShoppingItem } from '../models/ShoppingItem';
+import { GlobalItem } from '../models/GlobalItem';
 
 /**
  * Generate or update monthly stats for a specific user and month
@@ -72,11 +73,14 @@ export async function generateMonthlyStats(
     for (const purchase of purchases) {
       const item = await ShoppingItem.findById(purchase.shoppingItemId);
       if (item) {
-        const existing = itemMap.get(item.name) || { quantity: 0, totalSpent: 0 };
-        itemMap.set(item.name, {
-          quantity: existing.quantity + 1,
-          totalSpent: existing.totalSpent + purchase.actualCost,
-        });
+        const globalItem = await GlobalItem.findById(item.globalItemId);
+        if (globalItem) {
+          const existing = itemMap.get(globalItem.name) || { quantity: 0, totalSpent: 0 };
+          itemMap.set(globalItem.name, {
+            quantity: existing.quantity + 1,
+            totalSpent: existing.totalSpent + purchase.actualCost,
+          });
+        }
       }
     }
 

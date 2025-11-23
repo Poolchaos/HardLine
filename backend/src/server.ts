@@ -92,6 +92,9 @@ async function startServer() {
   }
 }
 
-startServer();
+// Only start server if not in test environment or explicitly required
+if (process.env.NODE_ENV !== 'test' || process.env.START_SERVER === 'true') {
+  startServer();
+}
 
 export default app;

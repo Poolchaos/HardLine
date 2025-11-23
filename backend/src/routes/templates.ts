@@ -184,13 +184,13 @@ router.post('/:id/apply', strictLimiter, async (req: AuthRequest, res: Response)
     // Get all items from template with their current details
     const items = [];
     let estimatedCost = 0;
-    
+
     for (const templateItem of template.items) {
       const shoppingItem = await ShoppingItem.findOne({
         _id: templateItem.shoppingItemId,
         userId,
       }).populate('globalItemId');
-      
+
       if (shoppingItem) {
         const itemData = {
           ...shoppingItem.toObject(),
@@ -199,10 +199,10 @@ router.post('/:id/apply', strictLimiter, async (req: AuthRequest, res: Response)
         items.push(itemData);
 
         // Calculate estimated cost from purchase history
-        const globalItemId = typeof shoppingItem.globalItemId === 'string' 
-          ? shoppingItem.globalItemId 
+        const globalItemId = typeof shoppingItem.globalItemId === 'string'
+          ? shoppingItem.globalItemId
           : (shoppingItem.globalItemId as any)._id?.toString();
-        
+
         if (globalItemId) {
           // Get most recent purchase price for this item
           const recentPurchase = await ItemPurchaseHistory.findOne({

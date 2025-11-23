@@ -368,8 +368,8 @@ describe('ShoppingManager Component', () => {
       });
 
       const cancelButtons = screen.getAllByText('Cancel');
-      const formCancelButton = cancelButtons.find(btn => 
-        btn.getAttribute('type') === 'button' && 
+      const formCancelButton = cancelButtons.find(btn =>
+        btn.getAttribute('type') === 'button' &&
         btn.className.includes('border-slate-700')
       );
       if (formCancelButton) fireEvent.click(formCancelButton);

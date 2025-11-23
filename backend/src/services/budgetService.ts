@@ -1,11 +1,11 @@
 import { User } from '../models/User';
-import { FixedExpense } from '../models/FixedExpense';
+import { DebitOrder } from '../models/DebitOrder';
 import { Transaction } from '../models/Transaction';
 import { BudgetDashboard } from '../types';
 
 /**
  * Get complete budget dashboard data
- * Formula: Available = Total Income - Fixed Expenses - Total Spent
+ * Formula: Available = Total Income - Active Debit Orders - Total Spent
  */
 export async function getDashboard(
   userId: string,
@@ -34,12 +34,12 @@ export async function getDashboard(
     .filter((txn: any) => txn.type === 'expense')
     .reduce((sum: number, txn: any) => sum + txn.amount, 0);
 
-  // Get fixed expenses
-  const fixedExpenses = await FixedExpense.find({ userId, isActive: true });
-  const totalFixed = fixedExpenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
+  // Get active debit orders
+  const debitOrders = await DebitOrder.find({ userId, status: 'active' });
+  const totalDebitOrders = debitOrders.reduce((sum: number, order: any) => sum + order.amount, 0);
 
   // Calculate available balance
-  const availableBalance = totalIncome - totalFixed - totalSpent;
+  const availableBalance = totalIncome - totalDebitOrders - totalSpent;
 
   // Calculate days until payday
   const today = new Date();
@@ -55,7 +55,7 @@ export async function getDashboard(
   return {
     totalIncome,
     totalSpent,
-    fixedExpenses: totalFixed,
+    fixedExpenses: totalDebitOrders,
     availableBalance: Math.max(0, availableBalance),
     daysUntilPayday,
   };

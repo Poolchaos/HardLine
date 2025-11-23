@@ -75,24 +75,4 @@ router.get('/', monthQueryValidation, async (req: AuthRequest, res: Response) =>
   }
 });
 
-// GET /api/transactions/penalties?month=YYYY-MM
-router.get('/penalties', monthQueryValidation, async (req: Request, res: Response) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() });
-      return;
-    }
-
-    const userId = '000000000000000000000001';
-    const monthStr = req.query.month as string;
-    const month = monthStr ? new Date(`${monthStr}-01`) : new Date();
-
-    const breakdown = await getPenaltyBreakdown(userId, month);
-    res.json(breakdown);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 export default router;

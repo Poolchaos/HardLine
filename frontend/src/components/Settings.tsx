@@ -75,51 +75,19 @@ export default function Settings() {
         <p className="text-sm text-muted-foreground">Manage your financial configuration</p>
       </div>
 
-      {/* Income & Savings */}
+      {/* General Settings */}
       <section
         className="rounded-lg border border-border bg-secondary p-6"
-        aria-labelledby="income-heading"
+        aria-labelledby="general-heading"
       >
-        <h2 id="income-heading" className="mb-4 text-lg font-semibold">
-          Income & Savings
+        <h2 id="general-heading" className="mb-4 text-lg font-semibold">
+          General Settings
         </h2>
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="income" className="block text-sm font-medium mb-2">
-              Monthly Income (R)
-            </label>
-            <input
-              id="income"
-              type="number"
-              step="0.01"
-              value={user.income}
-              onChange={(e) => setUser({ ...user, income: parseFloat(e.target.value) })}
-              onBlur={() => handleUserUpdate({ income: user.income })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-              disabled={saving}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="savingsGoal" className="block text-sm font-medium mb-2">
-              Base Savings Goal (R)
-            </label>
-            <input
-              id="savingsGoal"
-              type="number"
-              step="0.01"
-              value={user.savingsBaseGoal}
-              onChange={(e) => setUser({ ...user, savingsBaseGoal: parseFloat(e.target.value) })}
-              onBlur={() => handleUserUpdate({ savingsBaseGoal: user.savingsBaseGoal })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-              disabled={saving}
-            />
-          </div>
-
-          <div>
             <label htmlFor="payday" className="block text-sm font-medium mb-2">
-              Payday (Day of Month: 1-31)
+              Payday (Day of Month)
             </label>
             <input
               id="payday"
@@ -133,7 +101,26 @@ export default function Settings() {
               disabled={saving}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Determines your bi-weekly shopping cycles
+              Used to calculate shopping cycles and days until payday
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="subsidyCap" className="block text-sm font-medium mb-2">
+              Sister Subsidy Cap (R)
+            </label>
+            <input
+              id="subsidyCap"
+              type="number"
+              step="0.01"
+              value={user.sisterSubsidyCap}
+              onChange={(e) => setUser({ ...user, sisterSubsidyCap: parseFloat(e.target.value) })}
+              onBlur={() => handleUserUpdate({ sisterSubsidyCap: user.sisterSubsidyCap })}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={saving}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Maximum amount to subsidize sister's expenses per month
             </p>
           </div>
         </div>
@@ -178,35 +165,6 @@ export default function Settings() {
             ⚠️ Penalty system is currently disabled. Violations will not be tracked.
           </div>
         )}
-      </section>
-
-      {/* Household Subsidy */}
-      <section
-        className="rounded-lg border border-border bg-secondary p-6"
-        aria-labelledby="subsidy-heading"
-      >
-        <h2 id="subsidy-heading" className="mb-4 text-lg font-semibold">
-          Household Subsidy
-        </h2>
-
-        <div>
-          <label htmlFor="subsidyCap" className="block text-sm font-medium mb-2">
-            Sister + BF Subsidy Cap (R)
-          </label>
-          <input
-            id="subsidyCap"
-            type="number"
-            step="0.01"
-            value={user.sisterSubsidyCap}
-            onChange={(e) => setUser({ ...user, sisterSubsidyCap: parseFloat(e.target.value) })}
-            onBlur={() => handleUserUpdate({ sisterSubsidyCap: user.sisterSubsidyCap })}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-            disabled={saving}
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Maximum monthly subsidy you're willing to provide
-          </p>
-        </div>
       </section>
 
       {/* Fixed Expenses */}

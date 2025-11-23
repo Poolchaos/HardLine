@@ -11,6 +11,7 @@ import transactionRoutes from './routes/transactions';
 import shoppingRoutes from './routes/shopping';
 import settingsRoutes from './routes/settings';
 import authRoutes from './routes/auth';
+import debitOrderRoutes from './routes/debitOrders';
 
 config();
 
@@ -44,6 +45,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/debit-orders', debitOrderRoutes);
 app.use('/api/shopping', shoppingRoutes);
 app.use('/api/settings', settingsRoutes);
 

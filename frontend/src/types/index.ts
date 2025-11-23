@@ -2,11 +2,11 @@ export type Category = 'Essential' | 'NiceToHave' | 'WorkAI' | 'Startup' | 'Snac
 export type Consumer = 'MeMom' | 'Household' | 'SisterBF';
 export type ShoppingCycle = 'MonthStart' | 'MidMonth' | 'Both';
 export type ShoppingCategory = 'Cleaning' | 'Pantry' | 'Fridge';
+export type TransactionType = 'income' | 'expense';
+export type IncomeSource = 'Salary' | 'Sister' | 'SideProject' | 'Other';
 
 export interface User {
   _id: string;
-  income: number;
-  savingsBaseGoal: number;
   penaltySystemEnabled: boolean;
   payday: number;
   sisterSubsidyCap: number;
@@ -16,12 +16,16 @@ export interface User {
 export interface Transaction {
   _id: string;
   userId: string;
+  type: TransactionType;
   date: string;
   amount: number;
   description: string;
-  category: Category;
-  consumer: Consumer;
-  isPenaltyTrigger: boolean;
+  // For expense transactions
+  category?: Category;
+  consumer?: Consumer;
+  isPenaltyTrigger?: boolean;
+  // For income transactions
+  incomeSource?: IncomeSource;
   createdAt: string;
 }
 
@@ -45,12 +49,11 @@ export interface ShoppingItem {
 }
 
 export interface BudgetDashboard {
-  availableToSpend: number;
-  savingsGoal: {
-    base: number;
-    penalties: number;
-    total: number;
-  };
+  totalIncome: number;
+  totalSpent: number;
+  fixedExpenses: number;
+  penalties: number;
+  availableBalance: number;
   daysUntilPayday: number;
   currentPenalties: {
     takeaways: number;
@@ -70,11 +73,15 @@ export interface SubsidyReport {
 }
 
 export interface CreateTransactionRequest {
+  type: TransactionType;
   amount: number;
   description: string;
-  category: Category;
-  consumer: Consumer;
   date?: string;
+  // For expense transactions
+  category?: Category;
+  consumer?: Consumer;
+  // For income transactions
+  incomeSource?: IncomeSource;
 }
 
 export interface CreateTransactionResponse {

@@ -2,7 +2,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { User } from '../../src/models/User';
 import { Transaction } from '../../src/models/Transaction';
-import { FixedExpense } from '../../src/models/FixedExpense';
+import { DebitOrder } from '../../src/models/DebitOrder';
 import { getDashboard } from '../../src/services/budgetService';
 
 let mongoServer: MongoMemoryServer;
@@ -21,7 +21,7 @@ afterAll(async () => {
 afterEach(async () => {
   await User.deleteMany({});
   await Transaction.deleteMany({});
-  await FixedExpense.deleteMany({});
+  await DebitOrder.deleteMany({});
 });
 
 describe('BudgetService', () => {
@@ -82,12 +82,14 @@ describe('BudgetService', () => {
         incomeSource: 'Salary',
       });
 
-      // Add fixed expense
-      await FixedExpense.create({
+      // Add debit order
+      await DebitOrder.create({
         userId: user._id!.toString(),
         name: 'Rent',
         amount: 8500,
-        isActive: true,
+        debitDate: 1,
+        priority: 'critical',
+        status: 'active',
       });
 
       const dashboard = await getDashboard(user._id!.toString(), testDate);
@@ -109,18 +111,22 @@ describe('BudgetService', () => {
         incomeSource: 'Salary',
       });
 
-      await FixedExpense.create({
+      await DebitOrder.create({
         userId: user._id!.toString(),
         name: 'Rent',
         amount: 8500,
-        isActive: true,
+        debitDate: 1,
+        priority: 'critical',
+        status: 'active',
       });
 
-      await FixedExpense.create({
+      await DebitOrder.create({
         userId: user._id!.toString(),
         name: 'Cancelled Gym',
         amount: 500,
-        isActive: false,
+        debitDate: 15,
+        priority: 'optional',
+        status: 'cancelled',
       });
 
       const dashboard = await getDashboard(user._id!.toString(), testDate);

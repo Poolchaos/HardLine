@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { transactionApi } from '../lib/api';
-import type { Category, Consumer } from '../types';
+import type { Category, Consumer, TransactionType, IncomeSource } from '../types';
 
 interface QuickAddProps {
   onClose: () => void;
@@ -21,11 +21,20 @@ const CONSUMERS: { value: Consumer; label: string }[] = [
   { value: 'SisterBF', label: 'Sister + BF' },
 ];
 
+const INCOME_SOURCES: { value: IncomeSource; label: string; emoji: string }[] = [
+  { value: 'Salary', label: 'Salary', emoji: '💼' },
+  { value: 'Sister', label: 'Sister Payment', emoji: '👩' },
+  { value: 'SideProject', label: 'Side Project', emoji: '🚀' },
+  { value: 'Other', label: 'Other', emoji: '💰' },
+];
+
 export default function QuickAdd({ onClose }: QuickAddProps) {
+  const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>('Essential');
   const [consumer, setConsumer] = useState<Consumer>('MeMom');
+  const [incomeSource, setIncomeSource] = useState<IncomeSource>('Salary');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [penaltyTriggered, setPenaltyTriggered] = useState(false);
@@ -66,10 +75,16 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
       setError(null);
 
       const response = await transactionApi.create({
+        type,
         amount: parseFloat(amount),
         description: description.trim(),
-        category,
-        consumer,
+        ...(type === 'expense' && {
+          category,
+          consumer,
+        }),
+        ...(type === 'income' && {
+          incomeSource,
+        }),
       });
 
       if (response.penaltyTriggered) {
@@ -106,10 +121,10 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
         {/* Header */}
         <div className="mb-6">
           <h2 id="quickadd-title" className="text-2xl font-bold">
-            Add Expense
+            Add Transaction
           </h2>
           <p className="text-sm text-muted-foreground">
-            Record a new transaction
+            Record income or expense
           </p>
         </div>
 
@@ -124,7 +139,7 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
               <span className="text-3xl" aria-hidden="true">⚠️</span>
               <div>
                 <p className="font-bold text-destructive text-lg">Penalty Applied!</p>
-                <p className="text-sm text-destructive">R500 added to savings goal</p>
+                <p className="text-sm text-destructive">R500 added to penalties</p>
               </div>
             </div>
           </div>
@@ -139,6 +154,37 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Type Toggle */}
+          <div>
+            <p className="block text-sm font-medium mb-2" id="type-label">
+              Type
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setType('income')}
+                className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                  type === 'income'
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'
+                    : 'border-border bg-secondary hover:border-green-500/50'
+                }`}
+              >
+                💰 Income
+              </button>
+              <button
+                type="button"
+                onClick={() => setType('expense')}
+                className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                  type === 'expense'
+                    ? 'border-red-500 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400'
+                    : 'border-border bg-secondary hover:border-red-500/50'
+                }`}
+              >
+                💸 Expense
+              </button>
+            </div>
+          </div>
+
           {/* Amount */}
           <div>
             <label htmlFor="amount" className="block text-sm font-medium mb-2">
@@ -170,56 +216,88 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="What did you buy?"
+              placeholder={type === 'income' ? 'Where is this from?' : 'What did you buy?'}
               required
               aria-required="true"
             />
           </div>
 
-          {/* Category Pills */}
-          <div>
-            <p className="block text-sm font-medium mb-2" id="category-label">
-              Category
-            </p>
-            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="category-label">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() => setCategory(cat.value)}
-                  className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
-                    category === cat.value
-                      ? 'border-primary bg-primary/20 text-primary'
-                      : 'border-border bg-secondary hover:border-primary/50'
-                  }`}
-                  role="radio"
-                  aria-checked={category === cat.value}
-                >
-                  <span className="mr-2" aria-hidden="true">{cat.emoji}</span>
-                  {cat.label}
-                </button>
-              ))}
+          {/* Income Source (only for income) */}
+          {type === 'income' && (
+            <div>
+              <p className="block text-sm font-medium mb-2" id="source-label">
+                Income Source
+              </p>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="source-label">
+                {INCOME_SOURCES.map((src) => (
+                  <button
+                    key={src.value}
+                    type="button"
+                    onClick={() => setIncomeSource(src.value)}
+                    className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                      incomeSource === src.value
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'
+                        : 'border-border bg-secondary hover:border-green-500/50'
+                    }`}
+                    role="radio"
+                    aria-checked={incomeSource === src.value}
+                  >
+                    <span className="mr-2" aria-hidden="true">{src.emoji}</span>
+                    {src.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Consumer */}
-          <div>
-            <label htmlFor="consumer" className="block text-sm font-medium mb-2">
-              Who is this for?
-            </label>
-            <select
-              id="consumer"
-              value={consumer}
-              onChange={(e) => setConsumer(e.target.value as Consumer)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {CONSUMERS.map((cons) => (
-                <option key={cons.value} value={cons.value}>
-                  {cons.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Category Pills (only for expense) */}
+          {type === 'expense' && (
+            <div>
+              <p className="block text-sm font-medium mb-2" id="category-label">
+                Category
+              </p>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="category-label">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => setCategory(cat.value)}
+                    className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-ring ${
+                      category === cat.value
+                        ? 'border-primary bg-primary/20 text-primary'
+                        : 'border-border bg-secondary hover:border-primary/50'
+                    }`}
+                    role="radio"
+                    aria-checked={category === cat.value}
+                  >
+                    <span className="mr-2" aria-hidden="true">{cat.emoji}</span>
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Consumer (only for expense) */}
+          {type === 'expense' && (
+            <div>
+              <label htmlFor="consumer" className="block text-sm font-medium mb-2">
+                Who is this for?
+              </label>
+              <select
+                id="consumer"
+                value={consumer}
+                onChange={(e) => setConsumer(e.target.value as Consumer)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {CONSUMERS.map((cons) => (
+                  <option key={cons.value} value={cons.value}>
+                    {cons.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
@@ -233,10 +311,14 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              className={`flex-1 rounded-md px-4 py-2 font-medium text-white focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 ${
+                type === 'income'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-primary hover:bg-primary/90'
+              }`}
               disabled={loading}
             >
-              {loading ? 'Adding...' : 'Add Expense'}
+              {loading ? 'Adding...' : type === 'income' ? 'Add Income' : 'Add Expense'}
             </button>
           </div>
         </form>

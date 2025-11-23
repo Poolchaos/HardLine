@@ -45,22 +45,20 @@ export default function Dashboard() {
   if (!dashboard) return null;
 
   const hasActivePenalties = dashboard.currentPenalties.total > 0;
-  const savingsProgress = dashboard.savingsGoal.total > 0
-    ? (dashboard.savingsGoal.penalties / dashboard.savingsGoal.total) * 100
-    : 0;
+  const savingsAmount = dashboard.availableBalance;
 
   return (
     <div className="space-y-6">
-      {/* Available to Spend - Hero Section */}
+      {/* Available Balance - Hero Section */}
       <section
         className="rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 p-6 border border-primary/20"
         aria-labelledby="available-heading"
       >
         <h2 id="available-heading" className="text-sm font-medium text-muted-foreground">
-          Available to Spend
+          Available Balance
         </h2>
         <p className="mt-2 text-4xl font-bold tracking-tight">
-          {formatCurrency(dashboard.availableToSpend)}
+          {formatCurrency(dashboard.availableBalance)}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {dashboard.daysUntilPayday} days until payday
@@ -96,65 +94,50 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Savings Goal Progress */}
+      {/* Income vs Expenses Summary */}
       <section
         className="rounded-lg border border-border bg-secondary p-6"
-        aria-labelledby="savings-heading"
+        aria-labelledby="summary-heading"
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="savings-heading" className="text-lg font-semibold">
-            Savings Goal
-          </h2>
-          <span className="text-sm text-muted-foreground">
-            {formatCurrency(dashboard.savingsGoal.total)}
-          </span>
-        </div>
+        <h2 id="summary-heading" className="text-lg font-semibold mb-4">
+          This Month
+        </h2>
 
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div
-            className="h-8 w-full rounded-full bg-muted overflow-hidden"
-            role="progressbar"
-            aria-valuenow={100}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Savings goal progress"
-          >
-            {/* Base Goal */}
-            <div
-              className="h-full bg-primary transition-all"
-              style={{
-                width: `${100 - savingsProgress}%`,
-                float: 'left'
-              }}
-              aria-label={`Base savings: ${formatCurrency(dashboard.savingsGoal.base)}`}
-            />
-            {/* Penalty Extension */}
-            {hasActivePenalties && (
-              <div
-                className="h-full bg-destructive transition-all"
-                style={{
-                  width: `${savingsProgress}%`,
-                  float: 'left',
-                  backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,.1) 10px, rgba(0,0,0,.1) 20px)'
-                }}
-                aria-label={`Penalties: ${formatCurrency(dashboard.savingsGoal.penalties)}`}
-              />
-            )}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Total Income */}
+          <div className="rounded-lg bg-green-50 dark:bg-green-950/20 p-4 border border-green-200 dark:border-green-800">
+            <p className="text-sm font-medium text-green-700 dark:text-green-400">Total Income</p>
+            <p className="mt-1 text-2xl font-bold text-green-900 dark:text-green-100">
+              {formatCurrency(dashboard.totalIncome)}
+            </p>
           </div>
 
-          {/* Legend */}
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-primary" aria-hidden="true" />
-              <span>Base: {formatCurrency(dashboard.savingsGoal.base)}</span>
+          {/* Total Spent */}
+          <div className="rounded-lg bg-red-50 dark:bg-red-950/20 p-4 border border-red-200 dark:border-red-800">
+            <p className="text-sm font-medium text-red-700 dark:text-red-400">Total Spent</p>
+            <p className="mt-1 text-2xl font-bold text-red-900 dark:text-red-100">
+              {formatCurrency(dashboard.totalSpent)}
+            </p>
+          </div>
+        </div>
+
+        {/* Breakdown */}
+        <div className="mt-4 pt-4 border-t space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Fixed Expenses</span>
+            <span className="font-medium">{formatCurrency(dashboard.fixedExpenses)}</span>
+          </div>
+          {hasActivePenalties && (
+            <div className="flex justify-between text-destructive">
+              <span>Penalties</span>
+              <span className="font-medium">{formatCurrency(dashboard.penalties)}</span>
             </div>
-            {hasActivePenalties && (
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-destructive" aria-hidden="true" />
-                <span>Penalties: {formatCurrency(dashboard.savingsGoal.penalties)}</span>
-              </div>
-            )}
+          )}
+          <div className="flex justify-between pt-2 border-t font-medium">
+            <span>Left to Save/Spend</span>
+            <span className={savingsAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+              {formatCurrency(savingsAmount)}
+            </span>
           </div>
         </div>
       </section>

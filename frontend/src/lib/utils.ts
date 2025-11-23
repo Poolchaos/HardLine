@@ -4,7 +4,8 @@ export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | undefined): string {
+  if (amount === undefined || amount === null) return 'R0.00';
   return `R${amount.toFixed(2)}`;
 }
 

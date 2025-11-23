@@ -6,6 +6,7 @@ import { apiLimiter, strictLimiter } from '../middleware/rateLimiter';
 import { ShoppingTemplate } from '../models/ShoppingTemplate';
 import { ShoppingItem } from '../models/ShoppingItem';
 import { GlobalItem } from '../models/GlobalItem';
+import { ItemPurchaseHistory } from '../models/ItemPurchaseHistory';
 
 const router = Router();
 
@@ -182,16 +183,38 @@ router.post('/:id/apply', strictLimiter, async (req: AuthRequest, res: Response)
 
     // Get all items from template with their current details
     const items = [];
+    let estimatedCost = 0;
+    
     for (const templateItem of template.items) {
       const shoppingItem = await ShoppingItem.findOne({
         _id: templateItem.shoppingItemId,
         userId,
-      });
+      }).populate('globalItemId');
+      
       if (shoppingItem) {
-        items.push({
+        const itemData = {
           ...shoppingItem.toObject(),
           templateQuantity: templateItem.quantity,
-        });
+        };
+        items.push(itemData);
+
+        // Calculate estimated cost from purchase history
+        const globalItemId = typeof shoppingItem.globalItemId === 'string' 
+          ? shoppingItem.globalItemId 
+          : (shoppingItem.globalItemId as any)._id?.toString();
+        
+        if (globalItemId) {
+          // Get most recent purchase price for this item
+          const recentPurchase = await ItemPurchaseHistory.findOne({
+            userId,
+            globalItemId,
+          }).sort({ purchaseDate: -1 });
+
+          if (recentPurchase) {
+            // Use most recent price multiplied by template quantity
+            estimatedCost += recentPurchase.price * templateItem.quantity;
+          }
+        }
       }
     }
 
@@ -202,7 +225,7 @@ router.post('/:id/apply', strictLimiter, async (req: AuthRequest, res: Response)
       },
       items,
       totalItems: items.length,
-      estimatedCost: 0, // TODO: Calculate from purchase history
+      estimatedCost: Math.round(estimatedCost * 100) / 100, // Round to 2 decimal places
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

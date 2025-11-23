@@ -22,18 +22,12 @@ describe('Dashboard', () => {
 
   it('should display available to spend amount', async () => {
     vi.mocked(budgetApi.getDashboard).mockResolvedValue({
-      availableToSpend: 15000,
-      savingsGoal: {
-        base: 5000,
-        penalties: 0,
-        total: 5000,
-      },
+      availableBalance: 15000,
+      totalIncome: 30000,
+      totalSpent: 5000,
+      fixedExpenses: 8000,
+      totalWastage: 2000,
       daysUntilPayday: 10,
-      currentPenalties: {
-        takeaways: 0,
-        snacks: 0,
-        total: 0,
-      },
     });
 
     render(<Dashboard />);
@@ -47,18 +41,12 @@ describe('Dashboard', () => {
 
   it('should show penalty alert when penalties exist', async () => {
     vi.mocked(budgetApi.getDashboard).mockResolvedValue({
-      availableToSpend: 10000,
-      savingsGoal: {
-        base: 5000,
-        penalties: 1000,
-        total: 6000,
-      },
+      availableBalance: 10000,
+      totalIncome: 30000,
+      totalSpent: 8000,
+      fixedExpenses: 10000,
+      totalWastage: 2000,
       daysUntilPayday: 5,
-      currentPenalties: {
-        takeaways: 500,
-        snacks: 500,
-        total: 1000,
-      },
     });
 
     render(<Dashboard />);
@@ -72,18 +60,12 @@ describe('Dashboard', () => {
 
   it('should show encouragement when no penalties', async () => {
     vi.mocked(budgetApi.getDashboard).mockResolvedValue({
-      availableToSpend: 15000,
-      savingsGoal: {
-        base: 5000,
-        penalties: 0,
-        total: 5000,
-      },
+      availableBalance: 15000,
+      totalIncome: 30000,
+      totalSpent: 5000,
+      fixedExpenses: 8000,
+      totalWastage: 2000,
       daysUntilPayday: 10,
-      currentPenalties: {
-        takeaways: 0,
-        snacks: 0,
-        total: 0,
-      },
     });
 
     render(<Dashboard />);

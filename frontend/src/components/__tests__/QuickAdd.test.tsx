@@ -18,14 +18,14 @@ vi.mock('../../lib/api', () => ({
 describe('QuickAdd Component', () => {
   const mockOnClose = vi.fn();
   const mockShoppingLists = [
-    { _id: 'list1', userId: 'user1', name: 'Weekly Groceries', description: 'Regular items', isActive: true, sortOrder: 0, createdAt: new Date() },
-    { _id: 'list2', userId: 'user1', name: 'Monthly Bulk', description: 'Bulk purchases', isActive: true, sortOrder: 1, createdAt: new Date() },
+    { _id: 'list1', userId: 'user1', name: 'Weekly Groceries', description: 'Regular items', isActive: true, sortOrder: 0, createdAt: '2025-01-01T00:00:00.000Z' },
+    { _id: 'list2', userId: 'user1', name: 'Monthly Bulk', description: 'Bulk purchases', isActive: true, sortOrder: 1, createdAt: '2025-01-01T00:00:00.000Z' },
   ];
 
   const mockShoppingItems = [
-    { _id: 'item1', userId: 'user1', listId: 'list1', name: 'Milk', category: 'Fridge' as any, cycle: 'MonthStart' as any, typicalCost: 25.50, isDiabeticFriendly: false, isActive: true },
-    { _id: 'item2', userId: 'user1', listId: 'list1', name: 'Bread', category: 'Pantry' as any, cycle: 'MonthStart' as any, typicalCost: 15.00, isDiabeticFriendly: false, isActive: true },
-    { _id: 'item3', userId: 'user1', listId: 'list1', name: 'Cleaning Spray', category: 'Cleaning' as any, cycle: 'MonthStart' as any, typicalCost: 35.00, isDiabeticFriendly: false, isActive: true },
+    { _id: 'item1', userId: 'user1', listId: 'list1', globalItemId: 'global1', quantity: 1, cycle: 'MonthStart' as any, isDiabeticFriendly: false, isActive: true, globalItem: { _id: 'global1', name: 'Milk', category: 'Fridge' as any, uom: 'L' as any, isActive: true, createdBy: 'user1', createdAt: '2025-01-01', updatedAt: '2025-01-01' } },
+    { _id: 'item2', userId: 'user1', listId: 'list1', globalItemId: 'global2', quantity: 1, cycle: 'MonthStart' as any, isDiabeticFriendly: false, isActive: true, globalItem: { _id: 'global2', name: 'Bread', category: 'Pantry' as any, uom: 'units' as any, isActive: true, createdBy: 'user1', createdAt: '2025-01-01', updatedAt: '2025-01-01' } },
+    { _id: 'item3', userId: 'user1', listId: 'list1', globalItemId: 'global3', quantity: 1, cycle: 'MonthStart' as any, isDiabeticFriendly: false, isActive: true, globalItem: { _id: 'global3', name: 'Cleaning Spray', category: 'Cleaning' as any, uom: 'units' as any, isActive: true, createdBy: 'user1', createdAt: '2025-01-01', updatedAt: '2025-01-01' } },
   ];
 
   beforeEach(() => {

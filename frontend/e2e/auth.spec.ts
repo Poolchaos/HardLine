@@ -9,11 +9,11 @@ test.describe('Authentication', () => {
     // Verify Sign In tab is active
     const signInTab = page.getByTestId('tab-signin');
     await expect(signInTab).toBeVisible();
-    
+
     // Verify form fields are present
     await expect(page.locator('#email')).toBeVisible();
     await expect(page.locator('#password')).toBeVisible();
-    
+
     // Verify submit button shows "Sign In"
     await expect(page.getByTestId('submit-button')).toHaveText('Sign In');
   });  test('should switch to signup form', async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe('Authentication', () => {
 
     // Submit form
     await page.getByTestId('submit-button').click();
-    
+
     // Wait for redirect to dashboard - look for heading specifically
     await expect(page.locator('#available-heading')).toBeVisible({ timeout: 10000 });
   });  test('should validate password confirmation on signup', async ({ page }) => {

@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { param, query } from 'express-validator';
 import { validationResult } from 'express-validator';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { generalLimiter } from '../middleware/rateLimiter';
+import { apiLimiter, strictLimiter } from '../middleware/rateLimiter';
 import {
   getMonthlyStats,
   generateMonthlyStats,
@@ -18,7 +18,7 @@ router.use(authenticate);
 // GET /api/stats/monthly/:year/:month - Get stats for specific month
 router.get(
   '/monthly/:year/:month',
-  generalLimiter,
+  apiLimiter,
   [
     param('year').isInt({ min: 2020, max: 2100 }),
     param('month').isInt({ min: 0, max: 11 }),
@@ -45,7 +45,7 @@ router.get(
 // POST /api/stats/monthly/:year/:month/regenerate - Force regenerate stats
 router.post(
   '/monthly/:year/:month/regenerate',
-  generalLimiter,
+  strictLimiter,
   [
     param('year').isInt({ min: 2020, max: 2100 }),
     param('month').isInt({ min: 0, max: 11 }),
@@ -72,7 +72,7 @@ router.post(
 // GET /api/stats/history?months=6 - Get historical stats
 router.get(
   '/history',
-  generalLimiter,
+  apiLimiter,
   [query('months').optional().isInt({ min: 1, max: 24 })],
   async (req: AuthRequest, res: Response) => {
     const errors = validationResult(req);
@@ -95,7 +95,7 @@ router.get(
 // GET /api/stats/ytd/:year - Get year-to-date summary
 router.get(
   '/ytd/:year',
-  generalLimiter,
+  apiLimiter,
   [param('year').isInt({ min: 2020, max: 2100 })],
   async (req: AuthRequest, res: Response) => {
     const errors = validationResult(req);
@@ -116,7 +116,7 @@ router.get(
 );
 
 // GET /api/stats/current - Get current month stats
-router.get('/current', generalLimiter, async (req: AuthRequest, res: Response) => {
+router.get('/current', apiLimiter, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
     const today = new Date();

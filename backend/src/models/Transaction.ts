@@ -1,11 +1,17 @@
 import mongoose from 'mongoose';
-import { ITransaction, Category, Consumer } from '../types';
+import { ITransaction, Category, TransactionType, IncomeSource } from '../types';
 
 const transactionSchema = new mongoose.Schema<ITransaction>({
   userId: {
     type: String,
     required: true,
     index: true,
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ['income', 'expense'] as TransactionType[],
+    default: 'expense',
   },
   date: {
     type: Date,
@@ -22,19 +28,17 @@ const transactionSchema = new mongoose.Schema<ITransaction>({
     required: true,
     trim: true,
   },
+  // For expense transactions
   category: {
     type: String,
-    required: true,
-    enum: ['Essential', 'NiceToHave', 'WorkAI', 'Startup', 'Snack', 'Takeaway'] as Category[],
+    enum: ['Essential', 'Discretionary', 'WorkAI', 'Startup', 'Food', 'Entertainment'] as Category[],
+    required: function(this: ITransaction) { return this.type === 'expense'; },
   },
-  consumer: {
+  // For income transactions
+  incomeSource: {
     type: String,
-    required: true,
-    enum: ['MeMom', 'Household', 'SisterBF'] as Consumer[],
-  },
-  isPenaltyTrigger: {
-    type: Boolean,
-    default: false,
+    enum: ['Salary', 'Sister', 'SideProject', 'Other'] as IncomeSource[],
+    required: function(this: ITransaction) { return this.type === 'income'; },
   },
   createdAt: {
     type: Date,

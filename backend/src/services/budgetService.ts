@@ -1,44 +1,11 @@
 import { User } from '../models/User';
 import { FixedExpense } from '../models/FixedExpense';
 import { Transaction } from '../models/Transaction';
-import { calculateMonthlyPenalty, getPenaltyBreakdown } from './penaltyService';
-import { BudgetDashboard, SubsidyReport } from '../types';
-
-/**
- * Calculate available to spend
- * Formula: (Income - FixedExpenses) - (BaseSavings + Penalties)
- */
-export async function calculateAvailableToSpend(
-  userId: string,
-  month: Date = new Date()
-): Promise<number> {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  const fixedExpenses = await FixedExpense.find({ userId, isActive: true });
-  const totalFixed = fixedExpenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
-
-  const penalty = await calculateMonthlyPenalty(userId, month);
-
-  const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-  const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59);
-
-  const transactions = await Transaction.find({
-    userId,
-    date: { $gte: startOfMonth, $lte: endOfMonth },
-  });
-
-  const totalSpent = transactions.reduce((sum: number, txn: any) => sum + txn.amount, 0);
-
-  const available = user.income - totalFixed - user.savingsBaseGoal - penalty - totalSpent;
-
-  return Math.max(0, available);
-}
+import { BudgetDashboard } from '../types';
 
 /**
  * Get complete budget dashboard data
+ * Formula: Available = Total Income - Fixed Expenses - Total Spent
  */
 export async function getDashboard(
   userId: string,
@@ -49,9 +16,32 @@ export async function getDashboard(
     throw new Error('User not found');
   }
 
-  const available = await calculateAvailableToSpend(userId, month);
-  const penalties = await getPenaltyBreakdown(userId, month);
+  const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+  const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59);
 
+  // Get all transactions for the month
+  const transactions = await Transaction.find({
+    userId,
+    date: { $gte: startOfMonth, $lte: endOfMonth },
+  });
+
+  // Calculate total income and expenses
+  const totalIncome = transactions
+    .filter((txn: any) => txn.type === 'income')
+    .reduce((sum: number, txn: any) => sum + txn.amount, 0);
+
+  const totalSpent = transactions
+    .filter((txn: any) => txn.type === 'expense')
+    .reduce((sum: number, txn: any) => sum + txn.amount, 0);
+
+  // Get fixed expenses
+  const fixedExpenses = await FixedExpense.find({ userId, isActive: true });
+  const totalFixed = fixedExpenses.reduce((sum: number, exp: any) => sum + exp.amount, 0);
+
+  // Calculate available balance
+  const availableBalance = totalIncome - totalFixed - totalSpent;
+
+  // Calculate days until payday
   const today = new Date();
   const nextPayday = new Date(
     today.getFullYear(),
@@ -63,60 +53,10 @@ export async function getDashboard(
   );
 
   return {
-    availableToSpend: available,
-    savingsGoal: {
-      base: user.savingsBaseGoal,
-      penalties: penalties.total,
-      total: user.savingsBaseGoal + penalties.total,
-    },
+    totalIncome,
+    totalSpent,
+    fixedExpenses: totalFixed,
+    availableBalance: Math.max(0, availableBalance),
     daysUntilPayday,
-    currentPenalties: penalties,
-  };
-}
-
-/**
- * Calculate household subsidy spend
- * Formula: Σ(SisterBF transactions) + (Σ(Household transactions) / 2)
- */
-export async function calculateSubsidy(
-  userId: string,
-  month: Date = new Date()
-): Promise<SubsidyReport> {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
-  const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59);
-
-  const transactions = await Transaction.find({
-    userId,
-    date: { $gte: startOfMonth, $lte: endOfMonth },
-  });
-
-  const sisterBFOnly = transactions
-    .filter((t: any) => t.consumer === 'SisterBF')
-    .reduce((sum: number, t: any) => sum + t.amount, 0);
-
-  const householdTotal = transactions
-    .filter((t: any) => t.consumer === 'Household')
-    .reduce((sum: number, t: any) => sum + t.amount, 0);
-
-  const householdShared = householdTotal / 2;
-
-  const totalSubsidized = sisterBFOnly + householdShared;
-  const percentageUsed = user.sisterSubsidyCap > 0
-    ? (totalSubsidized / user.sisterSubsidyCap) * 100
-    : 0;
-
-  return {
-    totalSubsidized,
-    cap: user.sisterSubsidyCap,
-    percentageUsed: Math.min(100, percentageUsed),
-    breakdown: {
-      sisterBFOnly,
-      householdShared,
-    },
   };
 }

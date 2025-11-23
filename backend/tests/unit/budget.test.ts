@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { User } from '../../src/models/User';
 import { Transaction } from '../../src/models/Transaction';
 import { FixedExpense } from '../../src/models/FixedExpense';
-import { calculateAvailableToSpend, getDashboard, calculateSubsidy } from '../../src/services/budgetService';
+import { getDashboard } from '../../src/services/budgetService';
 
 let mongoServer: MongoMemoryServer;
 
@@ -27,111 +27,199 @@ afterEach(async () => {
 describe('BudgetService', () => {
   const createTestUser = async () => {
     const user = new User({
-      income: 20000,
-      savingsBaseGoal: 5000,
-      penaltySystemEnabled: true,
+      email: 'test@hardline.com',
+      passwordHash: '$2a$10$dummyhashfortest',
+      name: 'Test User',
       payday: 25,
-      sisterSubsidyCap: 2000,
     });
     await user.save();
     return user;
   };
 
-  describe('calculateAvailableToSpend', () => {
-    it('should calculate available spend correctly with no expenses', async () => {
-      const user = await createTestUser();
-      const available = await calculateAvailableToSpend(user._id!.toString());
-
-      // Income 20000 - BaseSavings 5000 = 15000
-      expect(available).toBe(15000);
-    });
-
-    it('should subtract fixed expenses from available spend', async () => {
-      const user = await createTestUser();
-
-      await FixedExpense.create({
-        userId: user._id!.toString(),
-        name: 'Hosting',
-        amount: 500,
-        isActive: true,
-      });
-
-      await FixedExpense.create({
-        userId: user._id!.toString(),
-        name: 'Medical',
-        amount: 1000,
-        isActive: true,
-      });
-
-      const available = await calculateAvailableToSpend(user._id!.toString());
-
-      // Income 20000 - Fixed 1500 - Savings 5000 = 13500
-      expect(available).toBe(13500);
-    });
-
-    it('should subtract penalties from available spend', async () => {
-      const user = await createTestUser();
-      const testDate = new Date(2025, 10, 15);
-
-      await Transaction.create({
-        userId: user._id!.toString(),
-        date: testDate,
-        amount: 50,
-        description: 'McDonalds',
-        category: 'Takeaway',
-        consumer: 'MeMom',
-        isPenaltyTrigger: true,
-      });
-
-      const available = await calculateAvailableToSpend(user._id!.toString(), testDate);
-
-      // Income 20000 - Savings 5000 - Penalty 500 - Spent 50 = 14450
-      expect(available).toBe(14450);
-    });
-
-    it('should subtract actual spend from available', async () => {
-      const user = await createTestUser();
-      const testDate = new Date(2025, 10, 15);
-
-      await Transaction.create({
-        userId: user._id!.toString(),
-        date: testDate,
-        amount: 500,
-        description: 'Groceries',
-        category: 'Essential',
-        consumer: 'MeMom',
-        isPenaltyTrigger: false,
-      });
-
-      const available = await calculateAvailableToSpend(user._id!.toString(), testDate);
-
-      // Income 20000 - Savings 5000 - Spent 500 = 14500
-      expect(available).toBe(14500);
-    });
-
-    it('should not go negative', async () => {
-      const user = await createTestUser();
-      user.income = 1000; // Very low income
-      await user.save();
-
-      const available = await calculateAvailableToSpend(user._id!.toString());
-
-      expect(available).toBeGreaterThanOrEqual(0);
-    });
-  });
-
   describe('getDashboard', () => {
-    it('should return complete dashboard data', async () => {
+    it('should calculate available balance with income and expenses', async () => {
+      const user = await createTestUser();
+      const testDate = new Date(2025, 10, 15);
+
+      // Add income transactions
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 20000,
+        description: 'Salary',
+        incomeSource: 'Salary',
+      });
+
+      // Add expense transactions
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'expense',
+        date: testDate,
+        amount: 5000,
+        description: 'Groceries',
+        category: 'Food',
+      });
+
+      const dashboard = await getDashboard(user._id!.toString(), testDate);
+
+      expect(dashboard.totalIncome).toBe(20000);
+      expect(dashboard.totalSpent).toBe(5000);
+      expect(dashboard.availableBalance).toBe(15000);
+    });
+
+    it('should include fixed expenses in balance calculation', async () => {
+      const user = await createTestUser();
+      const testDate = new Date(2025, 10, 15);
+
+      // Add income
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 20000,
+        description: 'Salary',
+        incomeSource: 'Salary',
+      });
+
+      // Add fixed expense
+      await FixedExpense.create({
+        userId: user._id!.toString(),
+        name: 'Rent',
+        amount: 8500,
+        isActive: true,
+      });
+
+      const dashboard = await getDashboard(user._id!.toString(), testDate);
+
+      expect(dashboard.fixedExpenses).toBe(8500);
+      expect(dashboard.availableBalance).toBe(11500); // 20000 - 8500
+    });
+
+    it('should only include active fixed expenses', async () => {
+      const user = await createTestUser();
+      const testDate = new Date(2025, 10, 15);
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 20000,
+        description: 'Salary',
+        incomeSource: 'Salary',
+      });
+
+      await FixedExpense.create({
+        userId: user._id!.toString(),
+        name: 'Rent',
+        amount: 8500,
+        isActive: true,
+      });
+
+      await FixedExpense.create({
+        userId: user._id!.toString(),
+        name: 'Cancelled Gym',
+        amount: 500,
+        isActive: false,
+      });
+
+      const dashboard = await getDashboard(user._id!.toString(), testDate);
+
+      expect(dashboard.fixedExpenses).toBe(8500); // Only active
+      expect(dashboard.availableBalance).toBe(11500);
+    });
+
+    it('should handle multiple income sources', async () => {
+      const user = await createTestUser();
+      const testDate = new Date(2025, 10, 15);
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 20000,
+        description: 'Salary',
+        incomeSource: 'Salary',
+      });
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 3000,
+        description: 'Sister rent',
+        incomeSource: 'Sister',
+      });
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 1500,
+        description: 'Freelance project',
+        incomeSource: 'SideProject',
+      });
+
+      const dashboard = await getDashboard(user._id!.toString(), testDate);
+
+      expect(dashboard.totalIncome).toBe(24500);
+    });
+
+    it('should handle multiple expense categories', async () => {
+      const user = await createTestUser();
+      const testDate = new Date(2025, 10, 15);
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: testDate,
+        amount: 20000,
+        description: 'Salary',
+        incomeSource: 'Salary',
+      });
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'expense',
+        date: testDate,
+        amount: 2000,
+        description: 'Groceries',
+        category: 'Food',
+      });
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'expense',
+        date: testDate,
+        amount: 500,
+        description: 'Electricity',
+        category: 'Essential',
+      });
+
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'expense',
+        date: testDate,
+        amount: 300,
+        description: 'Netflix',
+        category: 'Entertainment',
+      });
+
+      const dashboard = await getDashboard(user._id!.toString(), testDate);
+
+      expect(dashboard.totalSpent).toBe(2800);
+      expect(dashboard.availableBalance).toBe(17200);
+    });
+
+    it('should return dashboard structure with all required fields', async () => {
       const user = await createTestUser();
       const dashboard = await getDashboard(user._id!.toString());
 
-      expect(dashboard).toHaveProperty('availableToSpend');
-      expect(dashboard).toHaveProperty('savingsGoal');
-      expect(dashboard.savingsGoal).toHaveProperty('base');
-      expect(dashboard.savingsGoal).toHaveProperty('penalties');
-      expect(dashboard.savingsGoal).toHaveProperty('total');
+      expect(dashboard).toHaveProperty('totalIncome');
+      expect(dashboard).toHaveProperty('totalSpent');
+      expect(dashboard).toHaveProperty('fixedExpenses');
+      expect(dashboard).toHaveProperty('availableBalance');
       expect(dashboard).toHaveProperty('daysUntilPayday');
-      expect(dashboard).toHaveProperty('currentPenalties');
     });
 
     it('should calculate days until payday correctly', async () => {
@@ -141,93 +229,90 @@ describe('BudgetService', () => {
       expect(dashboard.daysUntilPayday).toBeGreaterThan(0);
       expect(dashboard.daysUntilPayday).toBeLessThanOrEqual(31);
     });
-  });
 
-  describe('calculateSubsidy', () => {
-    it('should calculate SisterBF subsidy correctly', async () => {
+    it('should handle zero income and expenses', async () => {
       const user = await createTestUser();
       const testDate = new Date(2025, 10, 15);
 
-      await Transaction.create({
-        userId: user._id!.toString(),
-        date: testDate,
-        amount: 500,
-        description: 'Sister groceries',
-        category: 'Essential',
-        consumer: 'SisterBF',
-        isPenaltyTrigger: false,
-      });
+      const dashboard = await getDashboard(user._id!.toString(), testDate);
 
-      const subsidy = await calculateSubsidy(user._id!.toString(), testDate);
-
-      expect(subsidy.breakdown.sisterBFOnly).toBe(500);
-      expect(subsidy.totalSubsidized).toBe(500);
+      expect(dashboard.totalIncome).toBe(0);
+      expect(dashboard.totalSpent).toBe(0);
+      expect(dashboard.fixedExpenses).toBe(0);
+      expect(dashboard.availableBalance).toBe(0);
     });
 
-    it('should split household expenses 50/50', async () => {
+    it('should filter transactions by month correctly', async () => {
       const user = await createTestUser();
-      const testDate = new Date(2025, 10, 15);
+      const novemberDate = new Date(2025, 10, 15); // November
+      const decemberDate = new Date(2025, 11, 10); // December
 
+      // November income
       await Transaction.create({
         userId: user._id!.toString(),
-        date: testDate,
-        amount: 1000,
-        description: 'Shared groceries',
-        category: 'Essential',
-        consumer: 'Household',
-        isPenaltyTrigger: false,
+        type: 'income',
+        date: novemberDate,
+        amount: 20000,
+        description: 'November Salary',
+        incomeSource: 'Salary',
       });
 
-      const subsidy = await calculateSubsidy(user._id!.toString(), testDate);
+      // December income
+      await Transaction.create({
+        userId: user._id!.toString(),
+        type: 'income',
+        date: decemberDate,
+        amount: 22000,
+        description: 'December Salary',
+        incomeSource: 'Salary',
+      });
 
-      expect(subsidy.breakdown.householdShared).toBe(500);
-      expect(subsidy.totalSubsidized).toBe(500);
+      const novemberDashboard = await getDashboard(user._id!.toString(), novemberDate);
+      const decemberDashboard = await getDashboard(user._id!.toString(), decemberDate);
+
+      expect(novemberDashboard.totalIncome).toBe(20000);
+      expect(decemberDashboard.totalIncome).toBe(22000);
     });
 
-    it('should calculate percentage of cap used', async () => {
-      const user = await createTestUser();
-      user.sisterSubsidyCap = 1000;
-      await user.save();
+    it('should isolate data between different users', async () => {
+      // Create two users
+      const user1 = await createTestUser();
+      
+      const user2 = new User({
+        email: 'user2@hardline.com',
+        passwordHash: '$2a$10$dummyhashfortest2',
+        name: 'Test User 2',
+        payday: 1,
+      });
+      await user2.save();
 
       const testDate = new Date(2025, 10, 15);
 
+      // User 1 income
       await Transaction.create({
-        userId: user._id!.toString(),
+        userId: user1._id!.toString(),
+        type: 'income',
         date: testDate,
-        amount: 500,
-        description: 'Sister groceries',
-        category: 'Essential',
-        consumer: 'SisterBF',
-        isPenaltyTrigger: false,
+        amount: 20000,
+        description: 'User 1 Salary',
+        incomeSource: 'Salary',
       });
 
-      const subsidy = await calculateSubsidy(user._id!.toString(), testDate);
-
-      expect(subsidy.cap).toBe(1000);
-      expect(subsidy.totalSubsidized).toBe(500);
-      expect(subsidy.percentageUsed).toBe(50);
-    });
-
-    it('should cap percentage at 100', async () => {
-      const user = await createTestUser();
-      user.sisterSubsidyCap = 500;
-      await user.save();
-
-      const testDate = new Date(2025, 10, 15);
-
+      // User 2 income
       await Transaction.create({
-        userId: user._id!.toString(),
+        userId: user2._id!.toString(),
+        type: 'income',
         date: testDate,
-        amount: 1000,
-        description: 'Sister groceries',
-        category: 'Essential',
-        consumer: 'SisterBF',
-        isPenaltyTrigger: false,
+        amount: 15000,
+        description: 'User 2 Salary',
+        incomeSource: 'Salary',
       });
 
-      const subsidy = await calculateSubsidy(user._id!.toString(), testDate);
+      const dashboard1 = await getDashboard(user1._id!.toString(), testDate);
+      const dashboard2 = await getDashboard(user2._id!.toString(), testDate);
 
-      expect(subsidy.percentageUsed).toBe(100);
+      expect(dashboard1.totalIncome).toBe(20000);
+      expect(dashboard2.totalIncome).toBe(15000);
     });
   });
 });

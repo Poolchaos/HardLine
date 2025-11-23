@@ -1,23 +1,27 @@
 import { body, param, query, ValidationChain } from 'express-validator';
 
 export const createTransactionValidation: ValidationChain[] = [
+  body('type')
+    .isIn(['income', 'expense'])
+    .withMessage('Type must be income or expense'),
   body('amount').isFloat({ min: 0 }).withMessage('Amount must be a positive number'),
   body('description').trim().notEmpty().withMessage('Description is required'),
-  body('category')
-    .isIn(['Essential', 'NiceToHave', 'WorkAI', 'Startup', 'Snack', 'Takeaway'])
-    .withMessage('Invalid category'),
-  body('consumer')
-    .isIn(['MeMom', 'Household', 'SisterBF'])
-    .withMessage('Invalid consumer'),
   body('date').optional().isISO8601().withMessage('Invalid date format'),
+  // For expense transactions
+  body('category')
+    .if(body('type').equals('expense'))
+    .isIn(['Essential', 'Discretionary', 'WorkAI', 'Startup', 'Food', 'Entertainment'])
+    .withMessage('Invalid category'),
+  // For income transactions
+  body('incomeSource')
+    .if(body('type').equals('income'))
+    .isIn(['Salary', 'Sister', 'SideProject', 'Other'])
+    .withMessage('Invalid income source'),
 ];
 
 export const updateUserValidation: ValidationChain[] = [
-  body('income').optional().isFloat({ min: 0 }).withMessage('Income must be positive'),
-  body('savingsBaseGoal').optional().isFloat({ min: 0 }).withMessage('Savings goal must be positive'),
-  body('penaltySystemEnabled').optional().isBoolean().withMessage('Must be boolean'),
+  body('name').optional().trim().notEmpty().withMessage('Name is required'),
   body('payday').optional().isInt({ min: 1, max: 31 }).withMessage('Payday must be between 1-31'),
-  body('sisterSubsidyCap').optional().isFloat({ min: 0 }).withMessage('Subsidy cap must be positive'),
 ];
 
 export const createFixedExpenseValidation: ValidationChain[] = [

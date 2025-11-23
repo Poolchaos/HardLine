@@ -1,27 +1,30 @@
-export type Category = 'Essential' | 'NiceToHave' | 'WorkAI' | 'Startup' | 'Snack' | 'Takeaway';
-export type Consumer = 'MeMom' | 'Household' | 'SisterBF';
+export type Category = 'Essential' | 'Discretionary' | 'WorkAI' | 'Startup' | 'Food' | 'Entertainment';
 export type ShoppingCycle = 'MonthStart' | 'MidMonth' | 'Both';
 export type ShoppingCategory = 'Cleaning' | 'Pantry' | 'Fridge';
+export type TransactionType = 'income' | 'expense';
+export type IncomeSource = 'Salary' | 'Sister' | 'SideProject' | 'Other';
 
 export interface IUser {
   _id?: string;
-  income: number;
-  savingsBaseGoal: number;
-  penaltySystemEnabled: boolean;
+  email: string;
+  passwordHash: string;
+  name: string;
   payday: number; // 1-31
-  sisterSubsidyCap: number;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ITransaction {
   _id?: string;
   userId: string;
+  type: TransactionType;
   date: Date;
   amount: number;
   description: string;
-  category: Category;
-  consumer: Consumer;
-  isPenaltyTrigger: boolean;
+  // For expense transactions
+  category?: Category;
+  // For income transactions
+  incomeSource?: IncomeSource;
   createdAt?: Date;
 }
 
@@ -56,26 +59,9 @@ export interface IShoppingPurchase {
 
 // API Response Types
 export interface BudgetDashboard {
-  availableToSpend: number;
-  savingsGoal: {
-    base: number;
-    penalties: number;
-    total: number;
-  };
+  totalIncome: number;
+  totalSpent: number;
+  fixedExpenses: number;
+  availableBalance: number;
   daysUntilPayday: number;
-  currentPenalties: {
-    takeaways: number;
-    snacks: number;
-    total: number;
-  };
-}
-
-export interface SubsidyReport {
-  totalSubsidized: number;
-  cap: number;
-  percentageUsed: number;
-  breakdown: {
-    sisterBFOnly: number;
-    householdShared: number;
-  };
 }

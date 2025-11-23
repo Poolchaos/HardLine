@@ -73,11 +73,10 @@ describe('ShoppingService', () => {
   describe('getActiveShoppingList', () => {
     const createTestUser = async (payday: number = 1) => {
       const user = new User({
-        income: 20000,
-        savingsBaseGoal: 5000,
-        penaltySystemEnabled: true,
+        email: 'test@hardline.com',
+        passwordHash: '$2a$10$dummyhashfortest',
+        name: 'Test User',
         payday,
-        sisterSubsidyCap: 2000,
       });
       await user.save();
       return user;

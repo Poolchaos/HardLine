@@ -10,6 +10,7 @@ import budgetRoutes from './routes/budget';
 import transactionRoutes from './routes/transactions';
 import shoppingRoutes from './routes/shopping';
 import settingsRoutes from './routes/settings';
+import authRoutes from './routes/auth';
 
 config();
 
@@ -40,6 +41,7 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/shopping', shoppingRoutes);

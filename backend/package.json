@@ -13,23 +13,31 @@
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix"
   },
-  "keywords": ["finance", "budgeting", "personal"],
+  "keywords": [
+    "finance",
+    "budgeting",
+    "personal"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.19.2",
-    "mongoose": "^8.6.3",
-    "express-validator": "^7.2.0",
-    "express-rate-limit": "^7.4.0",
-    "winston": "^3.14.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "express-validator": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.6.3",
+    "winston": "^3.14.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.5.5",
     "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.13",
+    "@types/node": "^22.5.5",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.6.0",
     "@typescript-eslint/parser": "^8.6.0",

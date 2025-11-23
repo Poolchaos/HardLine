@@ -1,16 +1,20 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { ShoppingItem } from '../models/ShoppingItem';
 import { getActiveShoppingList } from '../services/shoppingService';
 import { createShoppingItemValidation, idParamValidation } from '../middleware/validation';
 import { strictLimiter } from '../middleware/rateLimiter';
+import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
+// Apply authentication to all routes
+router.use(authenticate);
+
 // GET /api/shopping/list - Get active shopping list for current cycle
-router.get('/list', async (req: Request, res: Response) => {
+router.get('/list', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = '000000000000000000000001';
+    const userId = req.userId!;
     const items = await getActiveShoppingList(userId);
     res.json(items);
   } catch (error: any) {
@@ -19,9 +23,9 @@ router.get('/list', async (req: Request, res: Response) => {
 });
 
 // GET /api/shopping/items - Get all shopping items
-router.get('/items', async (req: Request, res: Response) => {
+router.get('/items', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = '000000000000000000000001';
+    const userId = req.userId!;
     const items = await ShoppingItem.find({ userId }).sort({ category: 1, name: 1 });
     res.json(items);
   } catch (error: any) {
@@ -30,7 +34,7 @@ router.get('/items', async (req: Request, res: Response) => {
 });
 
 // POST /api/shopping/items - Create shopping item
-router.post('/items', strictLimiter, createShoppingItemValidation, async (req: Request, res: Response) => {
+router.post('/items', strictLimiter, createShoppingItemValidation, async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -38,7 +42,7 @@ router.post('/items', strictLimiter, createShoppingItemValidation, async (req: R
       return;
     }
 
-    const userId = '000000000000000000000001';
+    const userId = req.userId!;
     const { name, category, cycle, isDiabeticFriendly, typicalCost } = req.body;
 
     const item = new ShoppingItem({
@@ -59,7 +63,7 @@ router.post('/items', strictLimiter, createShoppingItemValidation, async (req: R
 });
 
 // DELETE /api/shopping/items/:id - Remove shopping item
-router.delete('/items/:id', strictLimiter, idParamValidation, async (req: Request, res: Response) => {
+router.delete('/items/:id', strictLimiter, idParamValidation, async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -68,7 +72,7 @@ router.delete('/items/:id', strictLimiter, idParamValidation, async (req: Reques
     }
 
     const { id } = req.params;
-    const userId = '000000000000000000000001';
+    const userId = req.userId!;
 
     const item = await ShoppingItem.findOneAndDelete({ _id: id, userId });
 

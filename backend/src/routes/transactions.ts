@@ -1,14 +1,17 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Transaction } from '../models/Transaction';
-import { getPenaltyBreakdown, checkPenaltyTrigger } from '../services/penaltyService';
 import { createTransactionValidation, monthQueryValidation } from '../middleware/validation';
 import { strictLimiter } from '../middleware/rateLimiter';
+import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
+// Apply authentication to all routes
+router.use(authenticate);
+
 // POST /api/transactions
-router.post('/', strictLimiter, createTransactionValidation, async (req: Request, res: Response) => {
+router.post('/', strictLimiter, createTransactionValidation, async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -16,37 +19,37 @@ router.post('/', strictLimiter, createTransactionValidation, async (req: Request
       return;
     }
 
-    const userId = '000000000000000000000001';
-    const { amount, description, category, consumer, date } = req.body;
+    const userId = req.userId!; // From auth middleware
+    const { type, amount, description, category, incomeSource, date } = req.body;
 
     const transactionDate = date ? new Date(date) : new Date();
 
-    // Check if this triggers a penalty
-    const isPenaltyTrigger = await checkPenaltyTrigger(userId, category, transactionDate);
-
     const transaction = new Transaction({
       userId,
+      type,
       amount,
       description,
-      category,
-      consumer,
       date: transactionDate,
-      isPenaltyTrigger,
+      // Expense-specific fields
+      ...(type === 'expense' && {
+        category,
+      }),
+      // Income-specific fields
+      ...(type === 'income' && {
+        incomeSource,
+      }),
     });
 
     await transaction.save();
 
-    res.status(201).json({
-      transaction,
-      penaltyTriggered: isPenaltyTrigger,
-    });
+    res.status(201).json({ transaction });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // GET /api/transactions?month=YYYY-MM
-router.get('/', monthQueryValidation, async (req: Request, res: Response) => {
+router.get('/', monthQueryValidation, async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -54,7 +57,7 @@ router.get('/', monthQueryValidation, async (req: Request, res: Response) => {
       return;
     }
 
-    const userId = '000000000000000000000001';
+    const userId = req.userId!; // From auth middleware
     const monthStr = req.query.month as string;
 
     const month = monthStr ? new Date(`${monthStr}-01`) : new Date();

@@ -12,6 +12,7 @@ import shoppingRoutes from './routes/shopping';
 import settingsRoutes from './routes/settings';
 import authRoutes from './routes/auth';
 import debitOrderRoutes from './routes/debitOrders';
+import statsRoutes from './routes/stats';
 
 config();
 
@@ -46,6 +47,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/debit-orders', debitOrderRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api/shopping', shoppingRoutes);
 app.use('/api/settings', settingsRoutes);
 

@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
 import { validateEnv } from './config/env';
 import { connectDatabase } from './config/database';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { apiLimiter } from './middleware/rateLimiter';
 import logger from './config/logger';
+import { processAutoDebits } from './services/autoDebitService';
 
 import budgetRoutes from './routes/budget';
 import transactionRoutes from './routes/transactions';
@@ -66,6 +68,20 @@ app.use(errorHandler);
 async function startServer() {
   try {
     await connectDatabase();
+
+    // Initialize cron job for auto-debits
+    // Runs every day at 1:00 AM
+    cron.schedule('0 1 * * *', async () => {
+      logger.info('Running scheduled auto-debit processing...');
+      try {
+        await processAutoDebits();
+      } catch (error) {
+        logger.error('Error in scheduled auto-debit job:', error);
+      }
+    });
+
+    logger.info('✅ Auto-debit cron job initialized (runs daily at 1:00 AM)');
+
     app.listen(PORT, () => {
       logger.info(`🚀 Server running on http://localhost:${PORT}`);
       logger.info(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);

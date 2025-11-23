@@ -149,17 +149,20 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
           const itemName = item.globalItem.name;
           const itemCategory = mapShoppingCategoryToTransactionCategory(item.globalItem.category);
 
-          return transactionApi.create({
-            type: 'expense',
+          const transactionData = {
+            type: 'expense' as const,
             amount: itemTotal,
             description: `${itemName}${purchased.quantity > 1 ? ` x${purchased.quantity}` : ''}`,
             category: itemCategory,
             ...(purchased.isWastage && {
               wastageAmount: itemTotal,
-              wastageType: 'Other' as any,
+              wastageType: 'ShouldntBuy' as any,
               wastageNotes: `Wastage: ${itemName}`,
             }),
-          });
+          };
+
+          console.log('Creating transaction:', transactionData);
+          return transactionApi.create(transactionData);
         });
 
         await Promise.all(promises);
@@ -200,7 +203,7 @@ export default function QuickAdd({ onClose }: QuickAddProps) {
           category,
           ...(isWastage && {
             wastageAmount: totalAmount,
-            wastageType: 'Other' as any,
+            wastageType: 'ShouldntBuy' as any,
             wastageNotes: `Wastage: ${description.trim()}`,
           }),
         }),

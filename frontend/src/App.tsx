@@ -4,9 +4,11 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import QuickAdd from './components/QuickAdd';
 import ShoppingManager from './components/ShoppingManager';
+import TransactionHistory from './components/TransactionHistory';
+import FixedExpenses from './components/FixedExpenses';
 import Settings from './components/Settings';
 
-type View = 'dashboard' | 'shopping' | 'settings';
+type View = 'dashboard' | 'shopping' | 'history' | 'expenses' | 'settings';
 
 function App() {
   const { user, logout, isLoading } = useAuth();
@@ -116,6 +118,44 @@ function App() {
               </span>
             </button>
             <button
+              onClick={() => setCurrentView('history')}
+              className={`px-6 py-3 font-medium transition-all relative ${
+                currentView === 'history'
+                  ? 'text-emerald-400'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              aria-current={currentView === 'history' ? 'page' : undefined}
+            >
+              {currentView === 'history' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+              )}
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                History
+              </span>
+            </button>
+            <button
+              onClick={() => setCurrentView('expenses')}
+              className={`px-6 py-3 font-medium transition-all relative ${
+                currentView === 'expenses'
+                  ? 'text-emerald-400'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              aria-current={currentView === 'expenses' ? 'page' : undefined}
+            >
+              {currentView === 'expenses' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+              )}
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Expenses
+              </span>
+            </button>
+            <button
               onClick={() => setCurrentView('settings')}
               className={`px-6 py-3 font-medium transition-all relative ${
                 currentView === 'settings'
@@ -143,6 +183,8 @@ function App() {
       <main className="container mx-auto px-4 py-8">
         {currentView === 'dashboard' && <Dashboard />}
         {currentView === 'shopping' && <ShoppingManager />}
+        {currentView === 'history' && <TransactionHistory />}
+        {currentView === 'expenses' && <FixedExpenses />}
         {currentView === 'settings' && <Settings />}
       </main>
 

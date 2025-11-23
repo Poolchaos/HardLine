@@ -81,4 +81,52 @@ router.get('/', monthQueryValidation, async (req: AuthRequest, res: Response) =>
   }
 });
 
+// PATCH /api/transactions/:id - Update transaction
+router.patch('/:id', strictLimiter, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+    const { wastageAmount, wastageType, wastageNotes, description, amount, category } = req.body;
+
+    const transaction = await Transaction.findOne({ _id: id, userId });
+
+    if (!transaction) {
+      res.status(404).json({ error: 'Transaction not found' });
+      return;
+    }
+
+    // Update fields if provided
+    if (description !== undefined) transaction.description = description;
+    if (amount !== undefined) transaction.amount = amount;
+    if (category !== undefined) transaction.category = category;
+    if (wastageAmount !== undefined) transaction.wastageAmount = wastageAmount;
+    if (wastageType !== undefined) transaction.wastageType = wastageType;
+    if (wastageNotes !== undefined) transaction.wastageNotes = wastageNotes;
+
+    await transaction.save();
+    res.json({ transaction });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/transactions/:id - Delete transaction
+router.delete('/:id', strictLimiter, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    const transaction = await Transaction.findOneAndDelete({ _id: id, userId });
+
+    if (!transaction) {
+      res.status(404).json({ error: 'Transaction not found' });
+      return;
+    }
+
+    res.json({ message: 'Transaction deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

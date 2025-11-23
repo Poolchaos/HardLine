@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { getDashboard } from '../services/budgetService';
+import { getDashboard, getSavingsOverview } from '../services/budgetService';
 import { monthQueryValidation } from '../middleware/validation';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
@@ -24,6 +24,19 @@ router.get('/dashboard', monthQueryValidation, async (req: AuthRequest, res: Res
 
     const dashboard = await getDashboard(userId, month);
     res.json(dashboard);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/budget/savings?months=12
+router.get('/savings', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const months = parseInt(req.query.months as string) || 12;
+
+    const savingsData = await getSavingsOverview(userId, months);
+    res.json(savingsData);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

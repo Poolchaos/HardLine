@@ -1,5 +1,6 @@
 import {
   BudgetDashboard,
+  SavingsOverview,
   SubsidyReport,
   Transaction,
   CreateTransactionRequest,
@@ -44,6 +45,9 @@ export const budgetApi = {
   getDashboard: (month?: string) =>
     fetchApi<BudgetDashboard>(`/budget/dashboard${month ? `?month=${month}` : ''}`),
 
+  getSavings: (months?: number) =>
+    fetchApi<SavingsOverview>(`/budget/savings${months ? `?months=${months}` : ''}`),
+
   getSubsidy: (month?: string) =>
     fetchApi<SubsidyReport>(`/budget/subsidy${month ? `?month=${month}` : ''}`),
 };
@@ -57,6 +61,15 @@ export const transactionApi = {
 
   list: (month?: string) =>
     fetchApi<Transaction[]>(`/transactions${month ? `?month=${month}` : ''}`),
+
+  update: (id: string, data: Partial<CreateTransactionRequest>) =>
+    fetchApi<{ transaction: Transaction }>(`/transactions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    fetchApi(`/transactions/${id}`, { method: 'DELETE' }),
 
   getPenalties: (month?: string) =>
     fetchApi<{ takeaways: number; snacks: number; total: number }>(
@@ -152,10 +165,22 @@ export const settingsApi = {
   getFixedExpenses: () =>
     fetchApi<FixedExpense[]>('/settings/fixed-expenses'),
 
-  createFixedExpense: (data: { name: string; amount: number }) =>
+  createFixedExpense: (data: { name: string; amount: number; debitDay: number }) =>
     fetchApi<FixedExpense>('/settings/fixed-expenses', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  updateFixedExpense: (id: string, data: { name?: string; amount?: number; debitDay?: number; isActive?: boolean }) =>
+    fetchApi<FixedExpense>(`/settings/fixed-expenses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  toggleFixedExpense: (id: string, isActive: boolean) =>
+    fetchApi<FixedExpense>(`/settings/fixed-expenses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
     }),
 
   deleteFixedExpense: (id: string) =>

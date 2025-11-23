@@ -5,7 +5,7 @@ export type ShoppingCategory = 'Cleaning' | 'Pantry' | 'Fridge';
 export type UOM = 'L' | 'ml' | 'kg' | 'g' | 'units' | 'pack' | 'dozen' | 'box' | 'bag' | 'bottle' | 'can';
 export type TransactionType = 'income' | 'expense';
 export type IncomeSource = 'Salary' | 'Other';
-export type WastageType = 'DeliveryFee' | 'Tip' | 'AppFee' | 'ServiceCharge' | 'Other';
+export type WastageType = 'DeliveryFee' | 'Tip' | 'AppFee' | 'ServiceCharge' | 'ShouldntBuy' | 'Other';
 
 export interface User {
   _id: string;
@@ -40,7 +40,11 @@ export interface FixedExpense {
   userId: string;
   name: string;
   amount: number;
+  debitDay?: number; // 1-31, day of month when expense is debited (optional for backward compatibility)
   isActive: boolean;
+  lastDebited?: string; // ISO date string of when expense was last auto-debited
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ShoppingList {
@@ -110,6 +114,25 @@ export interface BudgetDashboard {
   availableBalance: number;
   daysUntilPayday: number;
   totalWastage: number;
+}
+
+export interface MonthlySummary {
+  month: string; // YYYY-MM
+  totalIncome: number;
+  totalSpent: number;
+  totalWastage: number;
+  fixedExpenses: number;
+  savings: number;
+  savingsRate: number;
+}
+
+export interface SavingsOverview {
+  monthlySummaries: MonthlySummary[];
+  totalSavingsAllTime: number;
+  averageSavings: number;
+  averageSavingsRate: number;
+  bestMonth: MonthlySummary | null;
+  worstMonth: MonthlySummary | null;
 }
 
 export interface SubsidyReport {

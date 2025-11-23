@@ -27,6 +27,14 @@ export const updateUserValidation: ValidationChain[] = [
 export const createFixedExpenseValidation: ValidationChain[] = [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('amount').isFloat({ min: 0 }).withMessage('Amount must be positive'),
+  body('debitDay').isInt({ min: 1, max: 31 }).withMessage('Debit day must be between 1 and 31'),
+];
+
+export const updateFixedExpenseValidation: ValidationChain[] = [
+  body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
+  body('amount').optional().isFloat({ min: 0 }).withMessage('Amount must be positive'),
+  body('debitDay').optional().isInt({ min: 1, max: 31 }).withMessage('Debit day must be between 1 and 31'),
+  body('isActive').optional().isBoolean().withMessage('isActive must be boolean'),
 ];
 
 export const createShoppingItemValidation: ValidationChain[] = [

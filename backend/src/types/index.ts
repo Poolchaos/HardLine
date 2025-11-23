@@ -4,7 +4,7 @@ export type ShoppingCategory = 'Cleaning' | 'Pantry' | 'Fridge';
 export type UOM = 'L' | 'ml' | 'kg' | 'g' | 'units' | 'pack' | 'dozen' | 'box' | 'bag' | 'bottle' | 'can';
 export type TransactionType = 'income' | 'expense';
 export type IncomeSource = 'Salary' | 'Other';
-export type WastageType = 'DeliveryFee' | 'Tip' | 'AppFee' | 'ServiceCharge' | 'Other';
+export type WastageType = 'DeliveryFee' | 'Tip' | 'AppFee' | 'ServiceCharge' | 'ShouldntBuy' | 'Other';
 
 export interface IUser {
   _id?: string;
@@ -39,7 +39,11 @@ export interface IFixedExpense {
   userId: string;
   name: string;
   amount: number;
+  debitDay: number; // 1-31, day of month when expense is debited
   isActive: boolean;
+  lastDebited?: Date; // Track when this expense was last auto-debited
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IShoppingList {
